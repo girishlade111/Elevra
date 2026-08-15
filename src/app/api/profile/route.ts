@@ -107,12 +107,12 @@ export async function PATCH(req: Request) {
     }
 
     try {
-      // Map old field names to new schema
       const updateData: Parameters<typeof upsertProfile>[1] = {
         email: user?.email ?? "",
-        name: parsed.data.fullName ?? parsed.data.preferredName ?? undefined,
-        challenge: parsed.data.currentChallenge ?? undefined,
-        monthlyGoal: parsed.data.primaryGoal ?? undefined,
+        name: parsed.data.name ?? parsed.data.fullName ?? parsed.data.preferredName ?? undefined,
+        careerStage: parsed.data.careerStage ?? undefined,
+        challenge: parsed.data.challenge ?? parsed.data.currentChallenge ?? undefined,
+        monthlyGoal: parsed.data.monthlyGoal ?? parsed.data.primaryGoal ?? undefined,
       };
 
       const updated = await upsertProfile(userId, updateData);
@@ -125,6 +125,7 @@ export async function PATCH(req: Request) {
             clerkUserId: updated.clerkUserId,
             email: updated.email,
             name: updated.name,
+            careerStage: updated.careerStage,
             challenge: updated.challenge,
             monthlyGoal: updated.monthlyGoal,
             updatedAt: updated.updatedAt.toISOString(),
@@ -133,6 +134,7 @@ export async function PATCH(req: Request) {
         },
         { status: 200 }
       );
+
     } catch (dbErr) {
       console.warn("Could not update profile in database:", dbErr);
     }
