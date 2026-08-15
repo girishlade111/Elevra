@@ -160,6 +160,3 @@ export async function PATCH(req: Request) {
     );
   }
 }
-
-// Suppress unused import (updateOnboarding imported for completeness, used in onboarding route)
-export type { };

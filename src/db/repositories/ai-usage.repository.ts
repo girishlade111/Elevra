@@ -2,7 +2,7 @@
  * @fileoverview AI usage repository — records token consumption per request.
  * @server-only
  */
-import { eq, gte, sum, sql } from "drizzle-orm";
+import { eq, sum, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "@/db";
 import { aiUsage } from "@/db/schema/coaching";
