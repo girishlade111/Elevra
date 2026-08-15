@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { confidenceAreasEnum } from "./onboarding";
 
 export const updateProfileSchema = z.object({
+
   name: z.string().min(2).max(100).optional(),
   fullName: z.string().min(2).max(100).optional(),
   preferredName: z.string().max(60).optional().nullable(),
