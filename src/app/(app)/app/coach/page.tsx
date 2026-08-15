@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Send, Sparkles, CheckCircle2, ShieldAlert, ArrowUpRight } from "lucide-react";
+import { Send } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Container } from "@/components/layout/container";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";

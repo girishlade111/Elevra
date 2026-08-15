@@ -1,17 +1,14 @@
 import Link from "next/link";
-import { MessageSquare, TrendingUp, Mail, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { MessageSquare, Sparkles } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Container } from "@/components/layout/container";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DenseRow } from "@/components/ui/dense-row";
 import { ROUTES } from "@/config/routes";
-import { getAuthSession } from "@/lib/auth/session";
 
-export default async function DashboardPage() {
-  const session = await getAuthSession();
-
+export default function DashboardPage() {
   return (
     <div>
       <AppHeader
