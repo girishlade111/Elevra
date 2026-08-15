@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth/require-auth";
 import { updateProfileSchema } from "@/lib/validation/profile";
-import { getProfile, upsertProfile, updateOnboarding } from "@/db/repositories/profile.repository";
+import { getProfile, upsertProfile } from "@/db/repositories/profile.repository";
 import type { ApiResponse } from "@/types/api";
 
 export async function GET() {
