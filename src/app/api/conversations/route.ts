@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth/require-auth";
 import { createConversationSchema } from "@/lib/validation/chat";
+import {
+  createConversation,
+  listConversations,
+} from "@/db/repositories/conversation.repository";
 import type { ApiResponse } from "@/types/api";
-import type { Conversation } from "@/types/coaching";
 
 export async function GET() {
   try {
@@ -13,31 +16,18 @@ export async function GET() {
 
     const { userId } = authResult;
 
-    const sampleConversations: Conversation[] = [
-      {
-        id: "c_demo_1",
-        userId,
-        title: "Preparing for Quarterly Review Presentation",
-        summary: "Worked through breathing exercises and slide pacing strategies.",
-        lastIntent: "roleplay_practice",
-        createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-        updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      },
-      {
-        id: "c_demo_2",
-        userId,
-        title: "Imposter Syndrome in Senior Engineering Sync",
-        summary: "Reframed feelings of inadequacy into growth curiosity signals.",
-        lastIntent: "mindset_reframing",
-        createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-        updatedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-      },
-    ];
+    const conversations = await listConversations(userId, 50);
 
-    return NextResponse.json<ApiResponse<Conversation[]>>(
+    return NextResponse.json<ApiResponse>(
       {
         success: true,
-        data: sampleConversations,
+        data: conversations.map((c) => ({
+          id: c.id,
+          clerkUserId: c.clerkUserId,
+          title: c.title,
+          createdAt: c.createdAt.toISOString(),
+          updatedAt: c.updatedAt.toISOString(),
+        })),
         timestamp: new Date().toISOString(),
       },
       { status: 200 }
@@ -70,18 +60,21 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const parsed = createConversationSchema.safeParse(body);
 
-    const newConversation: Conversation = {
-      id: `conv_${Date.now()}`,
-      userId,
-      title: parsed.success && parsed.data.title ? parsed.data.title : "New Coaching Session",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const title =
+      parsed.success && parsed.data.title ? parsed.data.title : "New Coaching Session";
 
-    return NextResponse.json<ApiResponse<Conversation>>(
+    const conversation = await createConversation(userId, title);
+
+    return NextResponse.json<ApiResponse>(
       {
         success: true,
-        data: newConversation,
+        data: {
+          id: conversation.id,
+          clerkUserId: conversation.clerkUserId,
+          title: conversation.title,
+          createdAt: conversation.createdAt.toISOString(),
+          updatedAt: conversation.updatedAt.toISOString(),
+        },
         timestamp: new Date().toISOString(),
       },
       { status: 201 }
