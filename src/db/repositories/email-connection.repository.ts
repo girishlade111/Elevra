@@ -14,7 +14,6 @@ import { nanoid } from "nanoid";
 import { getDb } from "@/db";
 import { gmailConnections } from "@/db/schema/emails";
 import type {
-  GmailConnection,
   GmailConnectionPublic,
   NewGmailConnection,
   EmailProvider,
