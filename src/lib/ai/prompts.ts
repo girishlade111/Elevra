@@ -165,3 +165,28 @@ Schema:
 
   return prompt;
 }
+
+// ---------------------------------------------------------------------------
+// Legacy Compatibility Exports
+// ---------------------------------------------------------------------------
+
+export const INTENT_DETECTION_PROMPT = `Analyze the user's message and determine their primary coaching intent. Respond strictly with valid JSON.`;
+
+export function generatePersonalizedSystemPrompt(profile: {
+  preferredName?: string;
+  fullName?: string;
+  name?: string;
+  primaryGoal?: string;
+  monthlyGoal?: string;
+  currentChallenge?: string;
+  challenge?: string;
+  careerStage?: string;
+}): string {
+  return buildCoachingSystemPrompt({
+    userName: profile.preferredName || profile.fullName || profile.name,
+    careerStage: profile.careerStage,
+    biggestChallenge: profile.currentChallenge || profile.challenge,
+    monthlyGoal: profile.primaryGoal || profile.monthlyGoal,
+    detectedIntent: "general",
+  });
+}

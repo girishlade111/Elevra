@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { detectIntentLocal } from "../intent.ts";
+import { detectIntentLocal } from "../intent";
 
 describe("Local Intent Detection Engine", () => {
   it("accurately detects salary negotiation intent", () => {
