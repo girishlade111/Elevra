@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Mail, Check, AlertCircle, Send } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Send } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DenseRow } from "@/components/ui/dense-row";
 
 export default function EmailSettingsPage() {
   const [provider, setProvider] = React.useState<"resend" | "gmail_smtp">("resend");
@@ -36,7 +35,7 @@ export default function EmailSettingsPage() {
       } else {
         setTestStatus(`Failed: ${json.error?.message || "Check credentials in .env"}`);
       }
-    } catch (e) {
+    } catch {
       setTestStatus("Error: Failed to connect to email endpoint");
     } finally {
       setTesting(false);
