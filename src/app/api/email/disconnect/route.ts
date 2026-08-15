@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth/require-auth";
+import { deleteEmailConnection } from "@/db/repositories/email-connection.repository";
+import { upsertEmailPreference } from "@/db/repositories/email-preference.repository";
 import type { ApiResponse } from "@/types/api";
 
 export async function POST() {
@@ -8,6 +10,17 @@ export async function POST() {
     if (authResult.errorResponse) {
       return authResult.errorResponse;
     }
+
+    const { userId } = authResult;
+
+    // Remove the Gmail connection (if any)
+    await deleteEmailConnection(userId);
+
+    // Reset email preferences to resend (default)
+    await upsertEmailPreference(userId, {
+      provider: "resend",
+      weeklyCheckinsEnabled: false,
+    });
 
     return NextResponse.json<ApiResponse>(
       {
