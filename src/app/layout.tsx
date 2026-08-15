@@ -22,7 +22,7 @@ export default function RootLayout({
       publishableKey={
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
         clientEnv.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-        "pk_test_placeholder_key_for_setup"
+        "pk_test_Y2xlcmsuZXhhbXBsZS5jb20k"
       }
     >
       <html lang="en" className="dark">
