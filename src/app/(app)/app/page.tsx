@@ -9,12 +9,17 @@ import { DenseRow } from "@/components/ui/dense-row";
 import { ROUTES } from "@/config/routes";
 import { requireAuth } from "@/lib/auth/require-auth";
 
+import { getProfile } from "@/db/repositories/profile.repository";
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await requireAuth({ requireOnboarding: true });
+  const profile = await getProfile(user.id);
 
-  const greetingName = user.firstName || user.name?.split(" ")[0] || "Coach User";
+  const greetingName = profile?.name?.split(" ")[0] || user.firstName || user.name?.split(" ")[0] || "Coach User";
+  const activeFocus = profile?.challenge || "Executive Presence & Public Speaking";
+  const activeGoal = profile?.monthlyGoal || "Practicing steady pacing and eliminating filler words when presenting architecture proposals to executive stakeholders.";
 
   return (
     <div>
@@ -41,15 +46,16 @@ export default async function DashboardPage() {
                   Active Focus Area
                 </div>
                 <CardTitle className="text-[16px] mt-1">
-                  Executive Presence & Public Speaking
+                  {activeFocus}
                 </CardTitle>
               </div>
               <Badge variant="accent">In Progress</Badge>
             </CardHeader>
             <CardContent className="space-y-4 pt-0">
               <p className="text-[13px] text-text-secondary leading-relaxed">
-                Current challenge: Practicing steady pacing and eliminating filler words when presenting architecture proposals to executive stakeholders.
+                Current Monthly Goal: {activeGoal}
               </p>
+
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link href={ROUTES.app.coach}>
