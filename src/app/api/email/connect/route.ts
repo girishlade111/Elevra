@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     }
 
     // Persist Gmail connection with encrypted App Password
-    if (parsed.data.provider === "gmail_smtp" || parsed.data.provider === "gmail") {
+    if (parsed.data.provider === "gmail_smtp") {
       await upsertEmailConnection(userId, {
         email: parsed.data.email ?? "",
         appPassword: parsed.data.appPassword ?? "",
