@@ -1,28 +1,54 @@
+/**
+ * @fileoverview Production Neon PostgreSQL client using Drizzle ORM.
+ *
+ * Uses the neon-http adapter which is optimised for serverless environments
+ * (Vercel Edge, Vercel Functions, Next.js API routes).
+ *
+ * The connection is instantiated lazily on first use so that the module can
+ * be imported at the top level without crashing during the Next.js build step
+ * when DATABASE_URL is not set.
+ *
+ * @server-only — this file MUST NOT be imported from client components.
+ */
+
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { getServerEnv } from "@/config/env";
-import * as schema from "./schema";
+import * as schema from "./schema/index";
+
+export type { Database } from "./types";
+
+// Re-export schema so callers can import from "@/db"
+export { schema };
+
+// ---------------------------------------------------------------------------
+// Lazy singleton
+// ---------------------------------------------------------------------------
+
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 /**
- * Lazy database connection instance.
- * Validates DATABASE_URL before creating client.
+ * Returns the Drizzle database instance.
+ *
+ * Throws `Error` when `DATABASE_URL` is not set so that repository calls fail
+ * loudly rather than silently reading undefined.
  */
-function createDbClient() {
-  const env = getServerEnv();
+export function getDb(): ReturnType<typeof drizzle<typeof schema>> {
+  if (_db) return _db;
 
-  if (!env.DATABASE_URL) {
-    // Return null in environments where DB is not yet provisioned
-    return null;
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error(
+      "[db] DATABASE_URL is not set. " +
+        "Set it in .env (see .env.example) and run `npm run db:migrate` before starting the app."
+    );
   }
 
-  const sql = neon(env.DATABASE_URL);
-  return drizzle(sql, { schema });
+  const sql = neon(databaseUrl);
+  _db = drizzle(sql, { schema });
+  return _db;
 }
 
-export type Database = ReturnType<typeof createDbClient>;
-
-export const getDb = () => {
-  return createDbClient();
-};
-
-export { schema };
+/**
+ * Typed alias — use this in repository files for clarity.
+ */
+export type Db = ReturnType<typeof getDb>;
