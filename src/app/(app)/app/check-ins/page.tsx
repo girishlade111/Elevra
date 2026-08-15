@@ -1,9 +1,8 @@
-import { Mail, CheckCircle2, Clock } from "lucide-react";
+import { Mail } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Container } from "@/components/layout/container";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 export default function CheckInsPage() {
   const checkins = [

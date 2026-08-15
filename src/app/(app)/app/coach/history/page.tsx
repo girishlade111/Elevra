@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MessageSquare, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Container } from "@/components/layout/container";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
