@@ -77,6 +77,7 @@ export function getServerEnv(): ServerEnv {
     NODE_ENV: process.env.NODE_ENV,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || "sk_test_placeholder_key_for_setup",
     DATABASE_URL: process.env.DATABASE_URL,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     NVIDIA_NIM_API_KEY: process.env.NVIDIA_NIM_API_KEY,
     NVIDIA_NIM_BASE_URL: process.env.NVIDIA_NIM_BASE_URL || "https://integrate.api.nvidia.com/v1",
     RESEND_API_KEY: process.env.RESEND_API_KEY,
