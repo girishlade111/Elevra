@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sparkles, ArrowRight, Check } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Container } from "@/components/layout/container";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -198,15 +198,15 @@ export default function OnboardingPage() {
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { id: "supportive", label: "Supportive & Encouraging" },
-                        { id: "direct", label: "Direct & Practical" },
-                        { id: "challenging", label: "Challenging & Rigorous" },
-                        { id: "socratic", label: "Socratic & Reflective" },
+                        { id: "supportive" as const, label: "Supportive & Encouraging" },
+                        { id: "direct" as const, label: "Direct & Practical" },
+                        { id: "challenging" as const, label: "Challenging & Rigorous" },
+                        { id: "socratic" as const, label: "Socratic & Reflective" },
                       ].map((t) => (
                         <button
                           key={t.id}
                           type="button"
-                          onClick={() => setFormData({ ...formData, coachingTone: t.id as any })}
+                          onClick={() => setFormData({ ...formData, coachingTone: t.id })}
                           className={`p-2.5 rounded-[4px] border text-center text-[12.5px] transition-colors ${
                             formData.coachingTone === t.id
                               ? "border-accent bg-accent/10 text-text-primary font-medium"
