@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { DenseRow } from "@/components/ui/dense-row";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
