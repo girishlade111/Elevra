@@ -8,6 +8,11 @@ const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   CLERK_SECRET_KEY: z.string().min(1, "CLERK_SECRET_KEY is required for authentication"),
   DATABASE_URL: z.string().url("DATABASE_URL must be a valid PostgreSQL connection string").optional(),
+  ENCRYPTION_KEY: z
+    .string()
+    .length(64, "ENCRYPTION_KEY must be a 64-character hex string (32 bytes)")
+    .regex(/^[0-9a-f]{64}$/i, "ENCRYPTION_KEY must be a lowercase hex string")
+    .optional(),
   NVIDIA_NIM_API_KEY: z.string().min(1, "NVIDIA_NIM_API_KEY is required for coaching intelligence").optional(),
   NVIDIA_NIM_BASE_URL: z.string().url().default("https://integrate.api.nvidia.com/v1"),
   RESEND_API_KEY: z.string().optional(),
