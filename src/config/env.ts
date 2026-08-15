@@ -41,7 +41,8 @@ export type ClientEnv = z.infer<typeof clientEnvSchema>;
 export const clientEnv: ClientEnv = (() => {
   const parsed = clientEnvSchema.safeParse({
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_placeholder_key_for_setup",
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+      "pk_test_Y2xlcmsuZXhhbXBsZS5jb20k",
     NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || "/sign-in",
     NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || "/sign-up",
     NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:
