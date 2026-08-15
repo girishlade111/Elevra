@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MessageSquare, Shield, CheckCircle2, Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Container } from "@/components/layout/container";
 import { ROUTES } from "@/config/routes";
 
