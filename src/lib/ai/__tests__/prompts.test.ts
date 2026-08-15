@@ -5,8 +5,8 @@ import {
   SPECIALIZED_COACHING_PERSONAS,
   SAFETY_AND_BEHAVIORAL_RULES,
   COACHING_STYLE_GUIDELINES,
-} from "../prompts";
-import type { CoachingIntent } from "../schemas";
+} from "../prompts.ts";
+import type { CoachingIntent } from "../schemas.ts";
 
 describe("Coaching Prompt Generation & Personalization", () => {
   it("includes all specialized personas for the 7 coaching intents", () => {

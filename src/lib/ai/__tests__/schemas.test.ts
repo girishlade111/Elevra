@@ -4,7 +4,7 @@ import {
   aiCoachingResponseSchema,
   extractJsonFromModelOutput,
   validateCoachingResponse,
-} from "../schemas";
+} from "../schemas.ts";
 
 describe("AI Schema Validation & Output Parsing", () => {
   it("validates well-formed coaching response against Zod schema", () => {
