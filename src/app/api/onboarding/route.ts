@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth/require-auth";
 import { markUserOnboarded } from "@/lib/auth/sync-user";
 import { onboardingSchema } from "@/lib/validation/onboarding";
-import { getDb, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { upsertProfile, updateOnboarding } from "@/db/repositories/profile.repository";
 import type { ApiResponse } from "@/types/api";
+import type { CareerStage } from "@/db/schema/users";
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       return authResult.errorResponse;
     }
 
-    const { userId } = authResult;
+    const { userId, user } = authResult;
 
     const body = await req.json();
     const parsed = onboardingSchema.safeParse(body);
@@ -33,61 +33,34 @@ export async function POST(req: Request) {
       );
     }
 
-    const db = getDb();
-    if (db) {
-      try {
-        const profileId = `prof_${userId}`;
-        const existing = await db
-          .select()
-          .from(schema.profiles)
-          .where(eq(schema.profiles.userId, userId))
-          .limit(1);
+    // Upsert profile with the new schema fields
+    const profile = await upsertProfile(userId, {
+      email: user?.email ?? "",
+      name: parsed.data.fullName ?? parsed.data.preferredName ?? null,
+      // Map onboarding input to new schema — challenge maps from currentChallenge
+      challenge: parsed.data.currentChallenge ?? null,
+      // monthlyGoal maps from primaryGoal
+      monthlyGoal: parsed.data.primaryGoal ?? null,
+    });
 
-        if (existing.length === 0) {
-          await db.insert(schema.profiles).values({
-            id: profileId,
-            userId,
-            preferredName: parsed.data.preferredName || null,
-            primaryGoal: parsed.data.primaryGoal,
-            confidenceAreas: parsed.data.confidenceAreas,
-            currentChallenge: parsed.data.currentChallenge || "General confidence calibration",
-            baselineScore: parsed.data.baselineScore,
-            coachingTone: parsed.data.coachingTone,
-            emailUpdatesEnabled: parsed.data.emailUpdatesEnabled,
-            preferredEmailTime: "09:00",
-            timezone: "UTC",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        } else {
-          await db
-            .update(schema.profiles)
-            .set({
-              preferredName: parsed.data.preferredName || existing[0]?.preferredName,
-              primaryGoal: parsed.data.primaryGoal,
-              confidenceAreas: parsed.data.confidenceAreas,
-              currentChallenge: parsed.data.currentChallenge || existing[0]?.currentChallenge,
-              baselineScore: parsed.data.baselineScore,
-              coachingTone: parsed.data.coachingTone,
-              emailUpdatesEnabled: parsed.data.emailUpdatesEnabled,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.profiles.userId, userId));
-        }
-      } catch (dbErr) {
-        console.warn("Could not persist onboarding to database:", dbErr);
-      }
-    }
+    // Mark onboarding as complete
+    await updateOnboarding(userId, {
+      onboardingCompleted: true,
+      onboardingStep: 99,
+    });
 
-    // Mark as onboarded in sync memory fallback
+    // Also update memory store fallback
     await markUserOnboarded(userId);
 
     const profileRecord = {
-      id: `prof_${userId}`,
-      userId,
-      ...parsed.data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id: profile.id,
+      clerkUserId: userId,
+      name: profile.name,
+      challenge: profile.challenge,
+      monthlyGoal: profile.monthlyGoal,
+      onboardingCompleted: true,
+      createdAt: profile.createdAt.toISOString(),
+      updatedAt: profile.updatedAt.toISOString(),
     };
 
     return NextResponse.json<ApiResponse>(
@@ -113,3 +86,6 @@ export async function POST(req: Request) {
     );
   }
 }
+
+// Suppress unused import warning
+type _CareerStage = CareerStage;
