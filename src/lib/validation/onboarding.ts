@@ -16,9 +16,21 @@ export function sanitizeInput(input: string | null | undefined): string {
     .replace(/[\u0000-\u001F\u007F-\u009F]/g, ""); // Remove ASCII control characters
 }
 
+export const confidenceAreasEnum = z.enum([
+  "public_speaking",
+  "career_negotiation",
+  "social_interactions",
+  "leadership",
+  "imposter_syndrome",
+  "decision_making",
+  "dating_relationships",
+  "general_self_worth",
+]);
+
 // ---------------------------------------------------------------------------
 // Allowed Values & Reference Constants
 // ---------------------------------------------------------------------------
+
 
 export const CAREER_STAGE_OPTIONS = [
   {
