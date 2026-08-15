@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, MessageSquare } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Container } from "@/components/layout/container";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -51,13 +51,13 @@ export default async function ConversationDetailPage({
                 <div className="p-3 border border-border bg-surface-secondary/40 rounded-[4px] space-y-1">
                   <div className="text-[11.5px] font-semibold text-text-primary">User</div>
                   <p className="text-[13px] text-text-secondary">
-                    "I find myself speaking too fast whenever senior leaders ask a follow-up question."
+                    &quot;I find myself speaking too fast whenever senior leaders ask a follow-up question.&quot;
                   </p>
                 </div>
                 <div className="p-3 border border-border bg-panel rounded-[4px] space-y-1">
                   <div className="text-[11.5px] font-semibold text-accent">AI Coach</div>
                   <p className="text-[13px] text-text-secondary">
-                    "Fast pacing is an autonomic defense response to fill silence. Silence feels dangerous, but to executives, silence signifies thoughtfulness."
+                    &quot;Fast pacing is an autonomic defense response to fill silence. Silence feels dangerous, but to executives, silence signifies thoughtfulness.&quot;
                   </p>
                 </div>
               </div>
