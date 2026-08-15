@@ -19,6 +19,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.39.3",
     "lucide-react": "^0.475.0",
+    "nanoid": "^6.0.1",
     "next": "^15.1.7",
     "nodemailer": "^6.10.0",
     "openai": "^4.85.4",

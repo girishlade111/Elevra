@@ -15,8 +15,6 @@ import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import * as schema from "./schema/index";
 
-export type { Database } from "./types";
-
 // Re-export schema so callers can import from "@/db"
 export { schema };
 
@@ -52,3 +50,8 @@ export function getDb(): ReturnType<typeof drizzle<typeof schema>> {
  * Typed alias — use this in repository files for clarity.
  */
 export type Db = ReturnType<typeof getDb>;
+
+/**
+ * Database type alias (for external use via "@/db").
+ */
+export type Database = Db;
