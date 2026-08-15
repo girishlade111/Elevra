@@ -85,6 +85,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-// Suppress unused import warning
-type _CareerStage = CareerStage;
