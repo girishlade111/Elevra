@@ -3,6 +3,7 @@ import { validateCronRequest } from "@/lib/security/cron-auth";
 import { processWeeklyCheckinForUser } from "@/lib/coaching/checkin-engine";
 import { clientEnv } from "@/config/env";
 import type { ApiResponse } from "@/types/api";
+import type { ConfidenceArea, UserProfile } from "@/types/user";
 
 export async function GET(req: Request) {
   try {
@@ -21,7 +22,10 @@ export async function GET(req: Request) {
     }
 
     // Process checkin run
-    const simulatedActiveUsers = [
+    const simulatedActiveUsers: Array<{
+      user: { id: string; email: string };
+      profile: UserProfile;
+    }> = [
       {
         user: { id: "user_sample_1", email: "sample-user@example.com" },
         profile: {
@@ -30,10 +34,10 @@ export async function GET(req: Request) {
           fullName: "Alex Rivera",
           preferredName: "Alex",
           primaryGoal: "Lead engineering discussions with assertiveness",
-          confidenceAreas: ["public_speaking", "leadership"] as any,
+          confidenceAreas: ["public_speaking", "leadership"] as ConfidenceArea[],
           currentChallenge: "Hesitating before interjecting in group architecture reviews",
           baselineScore: 6,
-          coachingTone: "supportive" as const,
+          coachingTone: "supportive",
           emailUpdatesEnabled: true,
           preferredEmailTime: "09:00",
           timezone: "UTC",
