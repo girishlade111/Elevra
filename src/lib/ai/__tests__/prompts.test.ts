@@ -3,10 +3,8 @@ import assert from "node:assert/strict";
 import {
   buildCoachingSystemPrompt,
   SPECIALIZED_COACHING_PERSONAS,
-  SAFETY_AND_BEHAVIORAL_RULES,
-  COACHING_STYLE_GUIDELINES,
-} from "../prompts.ts";
-import type { CoachingIntent } from "../schemas.ts";
+} from "../prompts";
+import type { CoachingIntent } from "../schemas";
 
 describe("Coaching Prompt Generation & Personalization", () => {
   it("includes all specialized personas for the 7 coaching intents", () => {
