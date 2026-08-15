@@ -4,7 +4,6 @@ import { markUserOnboarded } from "@/lib/auth/sync-user";
 import { onboardingSchema } from "@/lib/validation/onboarding";
 import { upsertProfile, updateOnboarding } from "@/db/repositories/profile.repository";
 import type { ApiResponse } from "@/types/api";
-import type { CareerStage } from "@/db/schema/users";
 
 export async function POST(req: Request) {
   try {

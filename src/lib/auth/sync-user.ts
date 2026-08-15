@@ -3,7 +3,11 @@
  * and resolves onboarding status. Uses the profile repository.
  * @server-only
  */
-import { getProfile, upsertProfile } from "@/db/repositories/profile.repository";
+import {
+  getProfile,
+  upsertProfile,
+  updateOnboarding,
+} from "@/db/repositories/profile.repository";
 import type { UserSession } from "@/types/user";
 
 export interface SyncUserData {
@@ -63,8 +67,6 @@ export async function ensureUserProfile(data: SyncUserData): Promise<SyncUserRes
  */
 export async function markUserOnboarded(userId: string): Promise<void> {
   try {
-    await upsertProfile(userId, { email: "" }); // keep existing email
-    const { updateOnboarding } = await import("@/db/repositories/profile.repository");
     await updateOnboarding(userId, { onboardingCompleted: true, onboardingStep: 99 });
   } catch (error) {
     console.warn("[sync-user] markUserOnboarded failed:", error);
