@@ -36,6 +36,10 @@ export function AppHeader({ title, description, actions }: AppHeaderProps) {
             appearance={{
               elements: {
                 userButtonAvatarBox: "h-7 w-7 rounded-[4px] border border-border",
+                userButtonPopoverCard: "bg-panel border border-border text-text-primary shadow-none rounded-[4px]",
+                userButtonPopoverFooter: "hidden",
+                userPreviewMainIdentifier: "text-text-primary text-[13px] font-medium",
+                userPreviewSecondaryIdentifier: "text-text-secondary text-[12px]",
               },
             }}
           />

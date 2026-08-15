@@ -7,12 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DenseRow } from "@/components/ui/dense-row";
 import { ROUTES } from "@/config/routes";
+import { requireAuth } from "@/lib/auth/require-auth";
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const user = await requireAuth({ requireOnboarding: true });
+
+  const greetingName = user.firstName || user.name?.split(" ")[0] || "Coach User";
+
   return (
     <div>
       <AppHeader
-        title="Workspace Overview"
+        title={`Welcome back, ${greetingName}`}
         description="Monitor your active confidence focus areas and quick coaching entry points."
         actions={
           <Link href={ROUTES.app.coach}>

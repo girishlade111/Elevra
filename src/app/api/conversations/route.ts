@@ -1,27 +1,22 @@
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth/session";
+import { requireApiAuth } from "@/lib/auth/require-auth";
 import { createConversationSchema } from "@/lib/validation/chat";
 import type { ApiResponse } from "@/types/api";
 import type { Conversation } from "@/types/coaching";
 
 export async function GET() {
   try {
-    const session = await getAuthSession();
-    if (!session) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: { code: "UNAUTHORIZED", message: "User session required" },
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 }
-      );
+    const authResult = await requireApiAuth();
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
+
+    const { userId } = authResult;
 
     const sampleConversations: Conversation[] = [
       {
         id: "c_demo_1",
-        userId: session.userId,
+        userId,
         title: "Preparing for Quarterly Review Presentation",
         summary: "Worked through breathing exercises and slide pacing strategies.",
         lastIntent: "roleplay_practice",
@@ -30,7 +25,7 @@ export async function GET() {
       },
       {
         id: "c_demo_2",
-        userId: session.userId,
+        userId,
         title: "Imposter Syndrome in Senior Engineering Sync",
         summary: "Reframed feelings of inadequacy into growth curiosity signals.",
         lastIntent: "mindset_reframing",
@@ -65,24 +60,19 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getAuthSession();
-    if (!session) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: { code: "UNAUTHORIZED", message: "User session required" },
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 }
-      );
+    const authResult = await requireApiAuth();
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
+
+    const { userId } = authResult;
 
     const body = await req.json().catch(() => ({}));
     const parsed = createConversationSchema.safeParse(body);
 
     const newConversation: Conversation = {
       id: `conv_${Date.now()}`,
-      userId: session.userId,
+      userId,
       title: parsed.success && parsed.data.title ? parsed.data.title : "New Coaching Session",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

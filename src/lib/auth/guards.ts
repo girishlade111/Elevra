@@ -1,18 +1,15 @@
 import { redirect } from "next/navigation";
-import { getAuthSession } from "./session";
+import { getCurrentUser } from "./get-current-user";
+import { requireAuth } from "./require-auth";
 import { ROUTES } from "@/config/routes";
 
 export async function protectAppRoute() {
-  const session = await getAuthSession();
-  if (!session) {
-    redirect(ROUTES.auth.signIn);
-  }
-  return session;
+  return await requireAuth({ requireOnboarding: false });
 }
 
 export async function protectAuthRoute() {
-  const session = await getAuthSession();
-  if (session) {
+  const user = await getCurrentUser();
+  if (user) {
     redirect(ROUTES.app.dashboard);
   }
 }

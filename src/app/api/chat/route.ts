@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth/session";
+import { requireApiAuth } from "@/lib/auth/require-auth";
 import { sendMessageSchema } from "@/lib/validation/chat";
 import { aiClient } from "@/lib/ai/client";
 import { buildCoachingContextWindow } from "@/lib/coaching/memory";
@@ -7,17 +7,12 @@ import type { ApiResponse } from "@/types/api";
 
 export async function POST(req: Request) {
   try {
-    const session = await getAuthSession();
-    if (!session) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: { code: "UNAUTHORIZED", message: "User session required" },
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 }
-      );
+    const authResult = await requireApiAuth(true);
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
+
+    const { user } = authResult;
 
     const body = await req.json();
     const parsed = sendMessageSchema.safeParse(body);
@@ -39,10 +34,10 @@ export async function POST(req: Request) {
 
     const { message } = parsed.data;
 
-    // Build context window with user profile context
+    // Build context window with verified session user profile context
     const messages = buildCoachingContextWindow({
       profile: {
-        preferredName: session.name,
+        preferredName: user?.firstName || user?.name || "User",
         primaryGoal: "Build unshakeable communication confidence",
       },
       history: [

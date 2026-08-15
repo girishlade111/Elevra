@@ -10,7 +10,6 @@ import {
   Mail,
   User,
   Settings,
-  Shield,
   Sparkles,
   Home,
   Menu,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 import { ROUTES } from "@/config/routes";
 import { cn } from "@/lib/utils";
+import { UserMenu } from "./user-menu";
 
 interface AppSidebarProps {
   userEmail?: string;
@@ -140,19 +140,9 @@ export function AppSidebar({ userEmail, userName }: AppSidebarProps) {
           </div>
         </div>
 
-        {/* User Footer Summary */}
+        {/* Authenticated User Menu Footer */}
         <div className="p-3 border-t border-border bg-panel">
-          <div className="px-2.5 py-2 rounded-[4px] bg-surface-secondary/50 border border-border flex items-center justify-between">
-            <div className="overflow-hidden pr-2">
-              <div className="text-[12.5px] font-medium text-text-primary truncate">
-                {userName || "Coach User"}
-              </div>
-              <div className="text-[11.5px] text-text-muted truncate">
-                {userEmail || "user@workspace.app"}
-              </div>
-            </div>
-            <Shield className="h-4 w-4 text-text-muted shrink-0" />
-          </div>
+          <UserMenu userEmail={userEmail} userName={userName} />
         </div>
       </aside>
     </>

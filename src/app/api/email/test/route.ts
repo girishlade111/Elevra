@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth/session";
+import { requireApiAuth } from "@/lib/auth/require-auth";
 import { testEmailSchema } from "@/lib/validation/email";
 import { sendAppEmail } from "@/lib/email";
 import { renderTestEmailHtml } from "@/lib/email/templates";
@@ -8,17 +8,12 @@ import type { EmailSendResult } from "@/types/email";
 
 export async function POST(req: Request) {
   try {
-    const session = await getAuthSession();
-    if (!session) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: { code: "UNAUTHORIZED", message: "User session required" },
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 }
-      );
+    const authResult = await requireApiAuth(true);
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
+
+    const { user } = authResult;
 
     const body = await req.json();
     const parsed = testEmailSchema.safeParse(body);
@@ -44,7 +39,7 @@ export async function POST(req: Request) {
       {
         to: recipientEmail,
         subject: "AI Confidence Coach - Email Integration Test",
-        html: renderTestEmailHtml(session.name || "Confidence Coach Member"),
+        html: renderTestEmailHtml(user?.name || "Confidence Coach Member"),
       },
       provider
     );

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { AppLayout } from "@/components/layout/app-layout";
-import { getAuthSession } from "@/lib/auth/session";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,12 +9,12 @@ export default async function AuthenticatedAppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getAuthSession();
+  const user = await requireAuth();
 
   return (
     <AppLayout
-      userEmail={session?.email ?? undefined}
-      userName={session?.name ?? undefined}
+      userEmail={user.email || undefined}
+      userName={user.name || undefined}
     >
       {children}
     </AppLayout>

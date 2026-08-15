@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth/session";
+import { requireApiAuth } from "@/lib/auth/require-auth";
 import { connectEmailSchema } from "@/lib/validation/email";
 import { ResendEmailAdapter } from "@/lib/email/resend-adapter";
 import { GmailSmtpEmailAdapter } from "@/lib/email/gmail-adapter";
@@ -7,16 +7,9 @@ import type { ApiResponse } from "@/types/api";
 
 export async function POST(req: Request) {
   try {
-    const session = await getAuthSession();
-    if (!session) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: { code: "UNAUTHORIZED", message: "User session required" },
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 }
-      );
+    const authResult = await requireApiAuth();
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
 
     const body = await req.json();
