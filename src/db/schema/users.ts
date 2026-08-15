@@ -14,11 +14,17 @@ import {
 } from "drizzle-orm/pg-core";
 
 // ---------------------------------------------------------------------------
-// Enums (stored as text with check constraint via pgEnum alternative)
+// Enums & Option Values
 // ---------------------------------------------------------------------------
 
-/** Career stage options */
+/** Career stage options from onboarding workflow */
 export const CAREER_STAGE_VALUES = [
+  "Student or Fresh Graduate",
+  "Early Career (1-3 years)",
+  "Mid Career (4-8 years)",
+  "Senior or Leadership",
+  "Career Changer",
+  // Legacy / slug fallbacks
   "student",
   "early_career",
   "mid_career",
@@ -26,7 +32,19 @@ export const CAREER_STAGE_VALUES = [
   "executive",
   "career_changer",
 ] as const;
-export type CareerStage = (typeof CAREER_STAGE_VALUES)[number];
+export type CareerStage = (typeof CAREER_STAGE_VALUES)[number] | string;
+
+/** Primary challenge options from onboarding workflow */
+export const CHALLENGE_VALUES = [
+  "Salary negotiation",
+  "Interview confidence",
+  "Career change or pivot",
+  "Leadership and assertiveness",
+  "Work-life balance",
+  "Building my network",
+] as const;
+export type ChallengeOption = (typeof CHALLENGE_VALUES)[number] | string;
+
 
 // ---------------------------------------------------------------------------
 // profiles

@@ -21,11 +21,12 @@ export interface UpsertProfileData {
 }
 
 export interface UpdateOnboardingData {
-  onboardingStep?: number;
-  onboardingCompleted?: boolean;
+  name?: string;
   careerStage?: CareerStage;
   challenge?: string;
   monthlyGoal?: string;
+  onboardingStep?: number;
+  onboardingCompleted?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,22 +107,29 @@ export async function getProfile(clerkUserId: string): Promise<Profile | null> {
 }
 
 /**
- * Updates onboarding progress for the given Clerk user.
+ * Updates onboarding progress and profile fields for the given Clerk user.
+ * Automatically updates `last_active_at` and `updated_at`.
  */
 export async function updateOnboarding(
   clerkUserId: string,
   data: UpdateOnboardingData
-): Promise<void> {
+): Promise<Profile | null> {
   const db = getDb();
+  const now = new Date();
 
-  await db
+  const [updated] = await db
     .update(profiles)
     .set({
       ...data,
-      updatedAt: new Date(),
+      lastActiveAt: now,
+      updatedAt: now,
     })
-    .where(eq(profiles.clerkUserId, clerkUserId));
+    .where(eq(profiles.clerkUserId, clerkUserId))
+    .returning();
+
+  return updated ?? null;
 }
+
 
 /**
  * Updates the `last_active_at` timestamp (heartbeat) for the given Clerk user.
