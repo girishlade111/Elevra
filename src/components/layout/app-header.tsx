@@ -1,5 +1,4 @@
 import * as React from "react";
-import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
