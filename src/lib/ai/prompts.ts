@@ -1,4 +1,5 @@
 import type { CoachingIntent } from "./schemas";
+import { sanitizeForPrompt } from "@/lib/security/sanitize";
 
 // ---------------------------------------------------------------------------
 // Base Ethical & Safety Directives
@@ -127,6 +128,12 @@ export function buildCoachingSystemPrompt(context: PersonalizationContext): stri
     memorySummary,
   } = context;
 
+  const safeUserName = sanitizeForPrompt(userName);
+  const safeCareerStage = sanitizeForPrompt(careerStage);
+  const safeChallenge = sanitizeForPrompt(biggestChallenge);
+  const safeGoal = sanitizeForPrompt(monthlyGoal);
+  const safeMemory = memorySummary ? sanitizeForPrompt(memorySummary) : null;
+
   const persona = SPECIALIZED_COACHING_PERSONAS[detectedIntent] || SPECIALIZED_COACHING_PERSONAS.general;
 
   let prompt = `ROLE: ${persona.title}
@@ -138,17 +145,17 @@ ${COACHING_STYLE_GUIDELINES}
 ${SAFETY_AND_BEHAVIORAL_RULES}
 
 USER CALIBRATION PROFILE:
-- Client Name: ${userName}
-- Current Career Stage: ${careerStage}
-- Primary Challenge Focus: ${biggestChallenge}
-- 30-Day Goal Target: ${monthlyGoal}
+- Client Name: ${safeUserName}
+- Current Career Stage: ${safeCareerStage}
+- Primary Challenge Focus: ${safeChallenge}
+- 30-Day Goal Target: ${safeGoal}
 - Current Session Intent: ${detectedIntent.toUpperCase()}
 `;
 
-  if (memorySummary && memorySummary.trim().length > 0) {
+  if (safeMemory && safeMemory.trim().length > 0) {
     prompt += `
 LONG-TERM COACHING CONTEXT & HISTORY SUMMARY:
-${memorySummary.trim()}
+${safeMemory.trim()}
 `;
   }
 

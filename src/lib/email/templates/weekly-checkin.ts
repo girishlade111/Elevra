@@ -1,7 +1,4 @@
-/**
- * @fileoverview Weekly Check-In Digest Email Template.
- * Dispatched on automated cron schedule synthesizing coaching dialogues.
- */
+import { escapeHtml } from "@/lib/security/sanitize";
 
 export interface WeeklyCheckinEmailData {
   userName: string;
@@ -17,14 +14,23 @@ export interface WeeklyCheckinEmailData {
 }
 
 export function renderWeeklyCheckinHtml(data: WeeklyCheckinEmailData): string {
-  const goalSection = data.monthlyGoal
+  const safeSubject = escapeHtml(data.subject);
+  const safeGreeting = escapeHtml(data.greeting);
+  const safeProgress = escapeHtml(data.progress_acknowledgment);
+  const safeChallenge = escapeHtml(data.weekly_challenge);
+  const safeQuote = escapeHtml(data.motivational_quote);
+  const safeClosing = escapeHtml(data.closing);
+  const safeMonthlyGoal = data.monthlyGoal ? escapeHtml(data.monthlyGoal) : null;
+  const safeAppUrl = escapeHtml(data.appUrl);
+
+  const goalSection = safeMonthlyGoal
     ? `
       <div style="background-color: #1c1c1c; border: 1px solid #2a2a2a; border-radius: 6px; padding: 14px 16px; margin: 16px 0;">
         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8a8a8a; font-weight: 600; margin-bottom: 4px;">
           Active Monthly Focus
         </div>
         <div style="font-size: 13.5px; color: #e8e8e8; font-weight: 500;">
-          ${data.monthlyGoal}
+          ${safeMonthlyGoal}
         </div>
       </div>
     `
@@ -36,7 +42,7 @@ export function renderWeeklyCheckinHtml(data: WeeklyCheckinEmailData): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${data.subject}</title>
+  <title>${safeSubject}</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0d0d0d; color: #e8e8e8; margin: 0; padding: 20px; line-height: 1.6; }
     .container { max-width: 580px; margin: 0 auto; background-color: #161616; border: 1px solid #2a2a2a; border-radius: 8px; overflow: hidden; }
@@ -63,28 +69,28 @@ export function renderWeeklyCheckinHtml(data: WeeklyCheckinEmailData): string {
     </div>
     <div class="content">
       <h1 class="title">Weekly Executive Check-In</h1>
-      <div class="greeting">${data.greeting}</div>
+      <div class="greeting">${safeGreeting}</div>
 
       <p style="font-size: 13.5px; color: #e8e8e8; line-height: 1.6; margin-bottom: 16px;">
-        ${data.progress_acknowledgment}
+        ${safeProgress}
       </p>
 
       ${goalSection}
 
       <div class="section-title">This Week's Micro-Challenge</div>
       <div class="challenge-card">
-        <p class="challenge-desc">${data.weekly_challenge}</p>
+        <p class="challenge-desc">${safeChallenge}</p>
       </div>
 
       <div class="quote-card">
-        &ldquo;${data.motivational_quote}&rdquo;
+        &ldquo;${safeQuote}&rdquo;
       </div>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="${data.appUrl}/app" class="cta-btn">Open Your Coaching Workspace</a>
+        <a href="${safeAppUrl}/app" class="cta-btn">Open Your Coaching Workspace</a>
       </div>
 
-      <div class="closing">${data.closing}</div>
+      <div class="closing">${safeClosing}</div>
     </div>
     <div class="footer">
       Elevra • Confidential Executive &amp; Cognitive Behavioral Coaching

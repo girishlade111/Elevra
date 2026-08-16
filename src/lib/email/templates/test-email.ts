@@ -3,6 +3,8 @@
  * Dispatched to confirm provider connectivity.
  */
 
+import { escapeHtml } from "@/lib/security/sanitize";
+
 export interface TestEmailData {
   userName: string;
   provider: string;
@@ -10,7 +12,9 @@ export interface TestEmailData {
 }
 
 export function renderTestEmailHtml(data: TestEmailData): string {
-  const time = data.timestamp || new Date().toUTCString();
+  const userName = escapeHtml(data.userName);
+  const provider = escapeHtml(data.provider.toUpperCase());
+  const time = escapeHtml(data.timestamp || new Date().toUTCString());
 
   return `
 <!DOCTYPE html>
@@ -43,7 +47,7 @@ export function renderTestEmailHtml(data: TestEmailData): string {
       <div class="badge">Connection Verified</div>
       <h1 class="title">Email Integration Test Successful</h1>
       <p style="font-size: 14px; color: #8a8a8a; margin-bottom: 16px;">
-        Hello ${data.userName},
+        Hello ${userName},
       </p>
       <p style="font-size: 13.5px; color: #e8e8e8;">
         Your email delivery integration for <strong>Elevra</strong> is functioning properly. You will receive your automated weekly executive coaching digests at this address.
@@ -53,7 +57,7 @@ export function renderTestEmailHtml(data: TestEmailData): string {
         <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
           <tr>
             <td style="padding: 4px 0; color: #8a8a8a;">Delivery Provider:</td>
-            <td style="padding: 4px 0; color: #e8e8e8; font-weight: 600; text-align: right; text-transform: uppercase;">${data.provider.toUpperCase()}</td>
+            <td style="padding: 4px 0; color: #e8e8e8; font-weight: 600; text-align: right; text-transform: uppercase;">${provider}</td>
           </tr>
           <tr>
             <td style="padding: 4px 0; color: #8a8a8a;">Status:</td>
