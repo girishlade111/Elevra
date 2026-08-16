@@ -7,6 +7,7 @@ import {
   updateLastTested,
 } from "@/db/repositories/email-connection.repository";
 import { upsertEmailPreference } from "@/db/repositories/email-preference.repository";
+import { rateLimiter, RATE_LIMIT_TIERS } from "@/lib/security/rate-limit";
 import type { ApiResponse } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +20,22 @@ export async function POST(req: Request) {
     }
 
     const { userId } = authResult;
+
+    // Rate Limiting Check
+    const rateCheck = rateLimiter.check(`email_connect:${userId}`, RATE_LIMIT_TIERS.EMAIL_CONNECT);
+    if (!rateCheck.success) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: {
+            code: "RATE_LIMIT_EXCEEDED",
+            message: "Too many email connection attempts. Please wait a few minutes before trying again.",
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 429 }
+      );
+    }
 
     const body = await req.json().catch(() => null);
     const parsed = connectEmailSchema.safeParse(body);

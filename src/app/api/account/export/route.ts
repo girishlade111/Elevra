@@ -6,6 +6,7 @@ import { getMessages } from "@/db/repositories/message.repository";
 import { listCheckins } from "@/db/repositories/weekly-checkin.repository";
 import { getEmailPreference } from "@/db/repositories/email-preference.repository";
 import { getUsageSummary } from "@/db/repositories/ai-usage.repository";
+import { rateLimiter, RATE_LIMIT_TIERS } from "@/lib/security/rate-limit";
 import type { ApiResponse } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,22 @@ export async function POST() {
     }
 
     const { userId, user } = authResult;
+
+    // Rate Limiting Check
+    const rateCheck = rateLimiter.check(`account_export:${userId}`, RATE_LIMIT_TIERS.ACCOUNT_EXPORT);
+    if (!rateCheck.success) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: {
+            code: "RATE_LIMIT_EXCEEDED",
+            message: "Too many export requests. Please wait before exporting your data again.",
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 429 }
+      );
+    }
 
     // Fetch all user records concurrently
     const [profile, convs, checkins, emailPref, usage] = await Promise.all([

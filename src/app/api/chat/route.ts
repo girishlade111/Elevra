@@ -15,6 +15,7 @@ import { getMemory } from "@/db/repositories/memory.repository";
 import { generateConversationTitle } from "@/lib/coaching/title-generator";
 import { detectIntentLocal } from "@/lib/ai/intent";
 import { AIError } from "@/lib/ai/errors";
+import { rateLimiter, RATE_LIMIT_TIERS } from "@/lib/security/rate-limit";
 import type { ApiResponse } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,22 @@ export async function POST(req: Request) {
     }
 
     const { userId, user } = authResult;
+
+    // 2b. Rate Limiting Check
+    const rateCheck = rateLimiter.check(`chat:${userId}`, RATE_LIMIT_TIERS.CHAT);
+    if (!rateCheck.success) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: {
+            code: "RATE_LIMIT_EXCEEDED",
+            message: "You are sending messages too quickly. Please wait a moment before sending another message.",
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 429 }
+      );
+    }
 
     // 3. Load profile from Neon DB
     const profile = await getProfile(userId);

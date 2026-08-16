@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth/require-auth";
 import { testEmailSchema } from "@/lib/validation/email";
 import { emailService } from "@/lib/email/service";
+import { rateLimiter, RATE_LIMIT_TIERS } from "@/lib/security/rate-limit";
 import type { ApiResponse } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,22 @@ export async function POST(req: Request) {
     }
 
     const { userId } = authResult;
+
+    // Rate Limiting Check
+    const rateCheck = rateLimiter.check(`email_test:${userId}`, RATE_LIMIT_TIERS.EMAIL_TEST);
+    if (!rateCheck.success) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: {
+            code: "RATE_LIMIT_EXCEEDED",
+            message: "Too many test email requests. Please wait a few minutes before trying again.",
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 429 }
+      );
+    }
 
     const body = await req.json().catch(() => null);
     const parsed = testEmailSchema.safeParse(body);
