@@ -223,3 +223,19 @@ export async function deleteConversation(
     .delete(conversations)
     .where(and(eq(conversations.id, id), eq(conversations.clerkUserId, clerkUserId)));
 }
+
+/**
+ * Deletes all conversations and messages for a specific user.
+ */
+export async function clearAllConversations(clerkUserId: string): Promise<void> {
+  const db = getDb();
+
+  await db
+    .delete(conversationMessages)
+    .where(eq(conversationMessages.clerkUserId, clerkUserId));
+
+  await db
+    .delete(conversations)
+    .where(eq(conversations.clerkUserId, clerkUserId));
+}
+

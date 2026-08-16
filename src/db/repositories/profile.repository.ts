@@ -156,3 +156,15 @@ export async function listOnboardedProfiles(): Promise<Profile[]> {
     .where(eq(profiles.onboardingCompleted, true));
 }
 
+/**
+ * Permanently deletes a user's profile record from the database.
+ */
+export async function deleteProfile(clerkUserId: string): Promise<void> {
+  const db = getDb();
+
+  await db
+    .delete(profiles)
+    .where(eq(profiles.clerkUserId, clerkUserId));
+}
+
+

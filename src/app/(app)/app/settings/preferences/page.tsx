@@ -1,45 +1,29 @@
-"use client";
+import { requireAuth } from "@/lib/auth/require-auth";
+import { getEmailPreference } from "@/db/repositories/email-preference.repository";
+import { PreferencesView } from "@/components/settings/preferences-view";
 
-import * as React from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { DenseRow } from "@/components/ui/dense-row";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+export const dynamic = "force-dynamic";
 
-export default function PreferencesPage() {
-  const [weeklyDigest, setWeeklyDigest] = React.useState(true);
-  const [intentTags, setIntentTags] = React.useState(true);
-  const [microActions, setMicroActions] = React.useState(true);
+export const metadata = {
+  title: "Preferences | Elevra",
+  description: "Configure your coaching tone, delivery schedule, and cognitive behavioral settings.",
+};
+
+export default async function PreferencesPage() {
+  const user = await requireAuth({ requireOnboarding: true });
+  const emailPref = await getEmailPreference(user.id);
+
+  const initialWeeklyEnabled = emailPref?.weeklyCheckinsEnabled ?? true;
+  const initialProvider = (emailPref?.provider === "gmail" ? "gmail" : "resend") as "resend" | "gmail";
+  const initialDestinationEmail = emailPref?.destinationEmail || user.email;
 
   return (
     <div className="space-y-6">
-      <Card className="bg-panel border-border">
-        <CardHeader>
-          <CardTitle className="text-[15px]">Coaching Experience Preferences</CardTitle>
-        </CardHeader>
-        <div>
-          <DenseRow
-            label="Weekly Email Synthesis Digest"
-            description="Automatically receive personalized progress reports on Monday mornings"
-            action={<Switch checked={weeklyDigest} onCheckedChange={setWeeklyDigest} />}
-          />
-          <DenseRow
-            label="Display Cognitive Intent Tags"
-            description="Show explicit classification tags (roleplay, reframing, planning) on AI responses"
-            action={<Switch checked={intentTags} onCheckedChange={setIntentTags} />}
-          />
-          <DenseRow
-            label="Enforce Micro-Action Generation"
-            description="Require AI Coach to output 5-15 minute daily behavioral experiments"
-            action={<Switch checked={microActions} onCheckedChange={setMicroActions} />}
-          />
-          <DenseRow
-            label="Coaching Protocol"
-            description="Cognitive Behavioral Calibration (CBT + Exposure Framework)"
-            action={<Badge variant="accent">CBT Core Active</Badge>}
-          />
-        </div>
-      </Card>
+      <PreferencesView
+        initialWeeklyEnabled={initialWeeklyEnabled}
+        initialProvider={initialProvider}
+        initialDestinationEmail={initialDestinationEmail}
+      />
     </div>
   );
 }

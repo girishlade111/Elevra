@@ -1,33 +1,45 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { DenseRow } from "@/components/ui/dense-row";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { requireAuth } from "@/lib/auth/require-auth";
+import { getProfile } from "@/db/repositories/profile.repository";
+import { getEmailPreference } from "@/db/repositories/email-preference.repository";
+import { getEmailConnection } from "@/db/repositories/email-connection.repository";
+import { SettingsHubView } from "@/components/settings/settings-hub-view";
 
-export default function GeneralSettingsPage() {
+export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Settings | Elevra",
+  description: "Manage your profile, career objectives, email delivery preferences, and privacy controls.",
+};
+
+export default async function SettingsPage() {
+  const user = await requireAuth({ requireOnboarding: true });
+
+  const [profile, emailPref, emailConn] = await Promise.all([
+    getProfile(user.id),
+    getEmailPreference(user.id),
+    getEmailConnection(user.id),
+  ]);
+
+  const userName = profile?.name || user.firstName || user.name || "Client";
+  const userEmail = profile?.email || user.email || "";
+  const careerStage = profile?.careerStage || "Professional";
+  const challenge = profile?.challenge || "General confidence & assertive communication";
+
+  const emailProvider = emailPref?.provider || (emailConn?.isConnected ? "gmail" : "resend");
+  const weeklyCheckinsEnabled = emailPref?.weeklyCheckinsEnabled ?? true;
+  const hasGmailConnected = Boolean(emailConn?.isConnected);
+
   return (
     <div className="space-y-6">
-      <Card className="bg-panel border-border">
-        <CardHeader>
-          <CardTitle className="text-[15px]">Account Overview</CardTitle>
-        </CardHeader>
-        <div>
-          <DenseRow
-            label="Authentication Provider"
-            description="Managed securely via Clerk Authentication"
-            action={<Badge variant="secondary">Clerk Active</Badge>}
-          />
-          <DenseRow
-            label="Session Security"
-            description="Multi-factor and session revocations handled in Clerk"
-            action={<Button variant="secondary" size="sm">Manage Auth</Button>}
-          />
-          <DenseRow
-            label="Data Export"
-            description="Download all coaching conversation transcripts and micro-action logs"
-            action={<Button variant="secondary" size="sm">Export JSON</Button>}
-          />
-        </div>
-      </Card>
+      <SettingsHubView
+        userName={userName}
+        userEmail={userEmail}
+        careerStage={careerStage}
+        challenge={challenge}
+        emailProvider={emailProvider}
+        weeklyCheckinsEnabled={weeklyCheckinsEnabled}
+        hasGmailConnected={hasGmailConnected}
+      />
     </div>
   );
 }
