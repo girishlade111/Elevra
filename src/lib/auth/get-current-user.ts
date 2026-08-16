@@ -9,19 +9,47 @@ export interface CurrentUserResult extends UserSession {
   isOnboarded: boolean;
 }
 
+let _authOverride: (() => Promise<{ userId: string | null }>) | null = null;
+let _currentUserOverride: (() => Promise<any | null>) | null = null;
+
+export function setAuthMock(
+  authFn: (() => Promise<{ userId: string | null }>) | null,
+  currentUserFn?: (() => Promise<any | null>) | null
+) {
+  _authOverride = authFn;
+  if (currentUserFn !== undefined) {
+    _currentUserOverride = currentUserFn;
+  }
+}
+
+export async function resolveAuth(): Promise<{ userId: string | null }> {
+  if (_authOverride) {
+    return await _authOverride();
+  }
+  return await auth();
+}
+
+export async function resolveCurrentUser(): Promise<any | null> {
+  if (_currentUserOverride) {
+    return await _currentUserOverride();
+  }
+  return await currentUser();
+}
+
 /**
  * Returns the canonical Clerk userId for the active session, or null if unauthenticated.
  * Fast check that reads only the JWT claims without additional network calls.
  */
 export async function getAuthUserId(): Promise<string | null> {
   try {
-    const { userId } = await auth();
+    const { userId } = await resolveAuth();
     return userId ?? null;
   } catch (error) {
     console.error("Error retrieving Clerk userId:", error);
     return null;
   }
 }
+
 
 /**
  * Retrieves the current authenticated user from Clerk and ensures synchronization
@@ -30,12 +58,12 @@ export async function getAuthUserId(): Promise<string | null> {
  */
 export async function getCurrentUser(): Promise<CurrentUserResult | null> {
   try {
-    const { userId } = await auth();
+    const { userId } = await resolveAuth();
     if (!userId) {
       return null;
     }
 
-    const clerkUser = await currentUser();
+    const clerkUser = await resolveCurrentUser();
     if (!clerkUser) {
       return null;
     }

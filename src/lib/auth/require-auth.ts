@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { getCurrentUser, type CurrentUserResult } from "./get-current-user";
+import { getCurrentUser, resolveAuth, type CurrentUserResult } from "./get-current-user";
 import { ROUTES } from "@/config/routes";
 import type { ApiResponse } from "@/types/api";
 
@@ -66,7 +66,7 @@ export type ApiAuthResult = ApiAuthSuccess | ApiAuthFailure;
  */
 export async function requireApiAuth(fetchFullUser = false): Promise<ApiAuthResult> {
   try {
-    const { userId } = await auth();
+    const { userId } = await resolveAuth();
 
     if (!userId) {
       return {
