@@ -64,6 +64,8 @@ export class MockRepositoryStore {
       careerStage?: CareerStage | null;
       challenge?: string | null;
       monthlyGoal?: string | null;
+      onboardingStep?: number;
+      onboardingCompleted?: boolean;
     }
   ): Promise<Profile> {
     const now = new Date();
@@ -71,11 +73,13 @@ export class MockRepositoryStore {
     if (existing) {
       const updated: Profile = {
         ...existing,
-        email: data.email,
-        name: data.name !== undefined ? data.name : existing.name,
+        email: data.email || existing.email,
+        name: data.name !== undefined && data.name !== null ? data.name : existing.name,
         careerStage: data.careerStage !== undefined ? data.careerStage : existing.careerStage,
         challenge: data.challenge !== undefined ? data.challenge : existing.challenge,
         monthlyGoal: data.monthlyGoal !== undefined ? data.monthlyGoal : existing.monthlyGoal,
+        onboardingStep: data.onboardingStep !== undefined ? data.onboardingStep : existing.onboardingStep,
+        onboardingCompleted: data.onboardingCompleted !== undefined ? data.onboardingCompleted : existing.onboardingCompleted,
         updatedAt: now,
         lastActiveAt: now,
       };
@@ -91,8 +95,8 @@ export class MockRepositoryStore {
       careerStage: data.careerStage ?? null,
       challenge: data.challenge ?? null,
       monthlyGoal: data.monthlyGoal ?? null,
-      onboardingStep: 0,
-      onboardingCompleted: false,
+      onboardingStep: data.onboardingStep ?? 0,
+      onboardingCompleted: data.onboardingCompleted ?? false,
       joinedAt: now,
       lastActiveAt: now,
       createdAt: now,
