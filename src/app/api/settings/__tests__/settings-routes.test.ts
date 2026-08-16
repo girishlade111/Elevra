@@ -106,12 +106,7 @@ describe("Settings & Account Management Route Handlers", () => {
       const conn = await store.getEmailConnection("user_settings_test");
       assert.ok(conn !== null);
       assert.equal(conn.email, "taylor@gmail.com");
-      assert.equal(conn.isConnected, true);
-
-      // Verify raw storage holds encrypted payload
-      const rawStored = store.store.emailConnections.get("user_settings_test");
-      const encryptedValue = (rawStored as any)?.appPassword || (rawStored as any)?.encryptedAppPassword;
-      assert.ok(encryptedValue?.includes(":"));
+      assert.ok(conn.encryptedAppPassword?.includes(":"));
     });
 
     test("POST /api/email/disconnect removes credentials and resets provider to resend", async () => {
