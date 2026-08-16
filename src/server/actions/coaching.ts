@@ -31,7 +31,7 @@ export async function sendCoachingMessageAction(rawInput: unknown): Promise<ApiR
       history: [
         {
           id: "m_server_act",
-          conversationId: parsed.data.conversationId,
+          conversationId: parsed.data.conversationId || "conv_server_action",
           sender: "user",
           content: parsed.data.message,
           createdAt: new Date().toISOString(),

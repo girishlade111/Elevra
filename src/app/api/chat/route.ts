@@ -137,7 +137,9 @@ export async function POST(req: Request) {
         biggestChallenge,
         monthlyGoal,
         recentMessages,
-        longTermMemory: memoryRecord ? { summaryText: memoryRecord.summary } : undefined,
+        longTermMemory: memoryRecord
+          ? { summaryText: memoryRecord.summary, updatedAt: memoryRecord.updatedAt }
+          : undefined,
       },
     });
 
