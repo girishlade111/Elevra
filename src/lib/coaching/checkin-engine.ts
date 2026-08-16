@@ -23,6 +23,7 @@ import { weeklyCheckinAiOutputSchema, type WeeklyCheckinAiOutput } from "@/lib/v
 import type { Profile } from "@/db/schema/users";
 import { maskEmail } from "@/lib/email/nodemailer";
 import { clientEnv } from "@/config/env";
+import { sanitizeForPrompt } from "@/lib/security/sanitize";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -59,19 +60,19 @@ export function buildWeeklyCheckinPrompt(
   recentTopics: string[],
   recentSnippets: string[]
 ): string {
-  const userName = profile.name || "Client";
-  const careerStage = profile.careerStage || "Professional";
-  const monthlyGoal = profile.monthlyGoal || "Strengthen executive confidence and communication";
-  const challenge = profile.challenge || "Overcoming hesitation and speaking up with clarity";
+  const userName = sanitizeForPrompt(profile.name || "Client");
+  const careerStage = sanitizeForPrompt(profile.careerStage || "Professional");
+  const monthlyGoal = sanitizeForPrompt(profile.monthlyGoal || "Strengthen executive confidence and communication");
+  const challenge = sanitizeForPrompt(profile.challenge || "Overcoming hesitation and speaking up with clarity");
 
   const topicsSummary =
     recentTopics.length > 0
-      ? recentTopics.join(", ")
+      ? sanitizeForPrompt(recentTopics.join(", "))
       : "General professional development and assertive communication";
 
   const activityContext =
     recentSnippets.length > 0
-      ? recentSnippets.slice(0, 3).map((s, i) => `Session ${i + 1}: ${s}`).join("\n")
+      ? recentSnippets.slice(0, 3).map((s, i) => `Session ${i + 1}: ${sanitizeForPrompt(s)}`).join("\n")
       : "Pursuing active monthly goal without recent direct chat messages.";
 
   return `You are Elevra's dedicated AI Executive Confidence Coach.
