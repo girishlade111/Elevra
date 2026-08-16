@@ -132,15 +132,15 @@ function resolveTableName(table: any): string {
 
 function extractUserId(clause: any): string | null {
   if (!clause) return null;
-  // Drizzle eq(field, value) structure
-  if (clause.value !== undefined) return String(clause.value);
-  if (clause.right !== undefined) {
-    if (clause.right.value !== undefined) return String(clause.right.value);
-    return String(clause.right);
-  }
-  if (clause.queryChunks) {
+  if (clause.value !== undefined && typeof clause.value === "string") return clause.value;
+  if (clause.right !== undefined && typeof clause.right === "string") return clause.right;
+  if (clause.queryChunks && Array.isArray(clause.queryChunks)) {
     for (const chunk of clause.queryChunks) {
-      if (chunk && chunk.value) return String(chunk.value);
+      if (chunk && typeof chunk.value === "string") return chunk.value;
+      if (chunk && chunk.brand !== undefined && typeof chunk.value === "string") return chunk.value;
+      if (chunk && chunk.value && typeof chunk.value === "object" && typeof chunk.value.value === "string") {
+        return chunk.value.value;
+      }
     }
   }
   return null;
