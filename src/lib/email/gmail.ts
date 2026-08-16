@@ -6,6 +6,7 @@
  */
 import { type EmailProvider, type EmailSendOptions, type EmailSendResult, type EmailConnectionTestResult } from "./provider";
 import { createGmailTransporter, verifySmtpConnection, mapSmtpError, maskEmail } from "./nodemailer";
+import type { Transporter } from "nodemailer";
 
 export class GmailEmailProvider implements EmailProvider {
   readonly name = "gmail" as const;
@@ -14,15 +15,23 @@ export class GmailEmailProvider implements EmailProvider {
     private credentials: {
       user: string;
       pass: string;
-    }
+    },
+    private transporterFactory?: (user: string, pass: string) => Transporter
   ) {}
+
+  private getTransporter(): Transporter {
+    if (this.transporterFactory) {
+      return this.transporterFactory(this.credentials.user, this.credentials.pass);
+    }
+    return createGmailTransporter(this.credentials.user, this.credentials.pass);
+  }
 
   async send(options: EmailSendOptions): Promise<EmailSendResult> {
     const { to, subject, html, text, from } = options;
     const senderAddress = from || this.credentials.user;
 
     try {
-      const transporter = createGmailTransporter(this.credentials.user, this.credentials.pass);
+      const transporter = this.getTransporter();
 
       const info = await transporter.sendMail({
         from: `"Elevra Coach" <${senderAddress}>`,
