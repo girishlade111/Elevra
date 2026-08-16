@@ -16,6 +16,7 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       async () => ({
         id: "user_onboard_test",
         firstName: "Morgan",
+        name: "Morgan Freeman",
         emailAddresses: [{ id: "e1", emailAddress: "morgan@example.com" }],
       })
     );
@@ -88,7 +89,7 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       const req = new Request("http://localhost:3000/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: 2, careerStage: "Senior / Staff" }),
+        body: JSON.stringify({ step: 2, careerStage: "Senior or Leadership" }),
       });
 
       const res = await POST(req);
@@ -96,7 +97,7 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       const json = await res.json();
       assert.equal(json.success, true);
       assert.equal(json.data.step, 2);
-      assert.equal(json.data.careerStage, "Senior / Staff");
+      assert.equal(json.data.careerStage, "Senior or Leadership");
       assert.equal(json.data.onboardingStep, 2);
     });
 
@@ -120,7 +121,7 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           step: 3,
-          challenge: "Speaking up in executive leadership meetings without hesitation",
+          challenge: "Leadership and assertiveness",
         }),
       });
 
@@ -129,18 +130,15 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       const json = await res.json();
       assert.equal(json.success, true);
       assert.equal(json.data.step, 3);
-      assert.equal(
-        json.data.challenge,
-        "Speaking up in executive leadership meetings without hesitation"
-      );
+      assert.equal(json.data.challenge, "Leadership and assertiveness");
       assert.equal(json.data.onboardingStep, 3);
     });
 
-    test("Step 3: rejects challenge that is too short", async () => {
+    test("Step 3: rejects challenge not in allowed list", async () => {
       const req = new Request("http://localhost:3000/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: 3, challenge: "bad" }),
+        body: JSON.stringify({ step: 3, challenge: "Invalid custom challenge" }),
       });
 
       const res = await POST(req);
@@ -183,8 +181,8 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       await store.upsertProfile("user_onboard_test", {
         email: "morgan@example.com",
         name: "Morgan Freeman",
-        careerStage: "Director / VP",
-        challenge: "Negotiating high stakes enterprise contracts",
+        careerStage: "Senior or Leadership",
+        challenge: "Salary negotiation",
       });
       await store.updateOnboarding("user_onboard_test", { onboardingStep: 3 });
 
@@ -193,11 +191,8 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       const json = await res.json();
       assert.equal(json.success, true);
       assert.equal(json.data.name, "Morgan Freeman");
-      assert.equal(json.data.careerStage, "Director / VP");
-      assert.equal(
-        json.data.challenge,
-        "Negotiating high stakes enterprise contracts"
-      );
+      assert.equal(json.data.careerStage, "Senior or Leadership");
+      assert.equal(json.data.challenge, "Salary negotiation");
       assert.equal(json.data.onboardingStep, 3);
       assert.equal(json.data.onboardingCompleted, false);
     });
@@ -232,8 +227,8 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
     test("submitting complete onboarding payload succeeds and completes onboarding", async () => {
       const fullPayload = {
         name: "Taylor Swift",
-        careerStage: "Founder / Executive",
-        challenge: "Managing public speaking anxiety before massive audiences",
+        careerStage: "Senior or Leadership",
+        challenge: "Leadership and assertiveness",
         monthlyGoal: "Own the stage with effortless, unshakeable poise",
       };
 
@@ -248,7 +243,7 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       const json = await res.json();
       assert.equal(json.success, true);
       assert.equal(json.data.name, "Taylor Swift");
-      assert.equal(json.data.careerStage, "Founder / Executive");
+      assert.equal(json.data.careerStage, "Senior or Leadership");
       assert.equal(json.data.onboardingCompleted, true);
     });
 
