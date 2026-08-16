@@ -2,7 +2,7 @@ import Link from "next/link";
 import { User, Settings, Sparkles, Calendar, Target, ShieldCheck, Mail } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Container } from "@/components/layout/container";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DenseRow } from "@/components/ui/dense-row";
