@@ -120,11 +120,24 @@ export function setupTestDatabase(store: MockRepositoryStore = mockStore) {
   return mockDb;
 }
 
+function resolveTableName(table: any): string {
+  if (!table) return "unknown";
+  if (typeof table === "string") return table;
+  if (table[Symbol.for("drizzle:BaseName")]) return String(table[Symbol.for("drizzle:BaseName")]);
+  if (table[Symbol.for("drizzle:Name")]) return String(table[Symbol.for("drizzle:Name")]);
+  if (table._?.name) return String(table._.name);
+  if (table.name && typeof table.name === "string") return table.name;
+  return "unknown";
+}
+
 function extractUserId(clause: any): string | null {
   if (!clause) return null;
   // Drizzle eq(field, value) structure
   if (clause.value !== undefined) return String(clause.value);
-  if (clause.right !== undefined) return String(clause.right);
+  if (clause.right !== undefined) {
+    if (clause.right.value !== undefined) return String(clause.right.value);
+    return String(clause.right);
+  }
   if (clause.queryChunks) {
     for (const chunk of clause.queryChunks) {
       if (chunk && chunk.value) return String(chunk.value);
@@ -139,7 +152,7 @@ async function executeSelect(
   clause: any,
   limit: number | null
 ): Promise<any[]> {
-  const tableName = table?._?.name || table?.name || "unknown";
+  const tableName = resolveTableName(table);
 
   if (tableName.includes("profiles")) {
     const userId = extractUserId(clause);
@@ -192,7 +205,7 @@ async function executeSelect(
 }
 
 async function executeInsert(store: MockRepositoryStore, table: any, values: any): Promise<any[]> {
-  const tableName = table?._?.name || table?.name || "unknown";
+  const tableName = resolveTableName(table);
   const item = Array.isArray(values) ? values[0] : values;
 
   if (tableName.includes("profiles")) {
@@ -239,7 +252,7 @@ async function executeUpdate(
   setVals: any,
   clause: any
 ): Promise<any[]> {
-  const tableName = table?._?.name || table?.name || "unknown";
+  const tableName = resolveTableName(table);
   const userId = extractUserId(clause);
 
   if (tableName.includes("profiles") && userId) {
@@ -258,7 +271,7 @@ async function executeUpdate(
 }
 
 async function executeDelete(store: MockRepositoryStore, table: any, clause: any): Promise<any> {
-  const tableName = table?._?.name || table?.name || "unknown";
+  const tableName = resolveTableName(table);
   const userId = extractUserId(clause);
 
   if (tableName.includes("profiles") && userId) {
