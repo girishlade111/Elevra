@@ -60,7 +60,7 @@ export class GmailEmailProvider implements EmailProvider {
 
   async testConnection(): Promise<EmailConnectionTestResult> {
     try {
-      const transporter = createGmailTransporter(this.credentials.user, this.credentials.pass);
+      const transporter = this.getTransporter();
       const verification = await verifySmtpConnection(transporter);
 
       if (!verification.success) {
