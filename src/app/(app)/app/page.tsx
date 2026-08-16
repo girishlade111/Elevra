@@ -6,7 +6,6 @@ import {
   TrendingUp,
   Mail,
   User,
-  Settings,
   Clock,
   CheckCircle2,
   AlertCircle,
