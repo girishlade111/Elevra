@@ -69,8 +69,8 @@ export async function getCurrentUser(): Promise<CurrentUserResult | null> {
     }
 
     const primaryEmail =
-      clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress ??
-      clerkUser.emailAddresses[0]?.emailAddress ??
+      clerkUser.emailAddresses?.find((e: any) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress ??
+      clerkUser.emailAddresses?.[0]?.emailAddress ??
       "";
 
     const fullName = clerkUser.firstName
