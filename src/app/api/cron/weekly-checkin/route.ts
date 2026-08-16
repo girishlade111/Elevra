@@ -78,7 +78,7 @@ export async function GET(req: Request) {
  * Manual trigger for authenticated users in development or test suites.
  * Allows the current logged-in user to test their personalized check-in synthesis.
  */
-export async function POST(req: Request) {
+export async function POST() {
   try {
     const authResult = await requireApiAuth(true);
     if (authResult.errorResponse) {
