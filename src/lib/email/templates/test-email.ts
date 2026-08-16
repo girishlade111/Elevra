@@ -53,7 +53,7 @@ export function renderTestEmailHtml(data: TestEmailData): string {
         <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
           <tr>
             <td style="padding: 4px 0; color: #8a8a8a;">Delivery Provider:</td>
-            <td style="padding: 4px 0; color: #e8e8e8; font-weight: 600; text-align: right; text-transform: uppercase;">${data.provider}</td>
+            <td style="padding: 4px 0; color: #e8e8e8; font-weight: 600; text-align: right; text-transform: uppercase;">${data.provider.toUpperCase()}</td>
           </tr>
           <tr>
             <td style="padding: 4px 0; color: #8a8a8a;">Status:</td>

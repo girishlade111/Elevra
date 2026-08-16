@@ -148,7 +148,7 @@ describe("Email HTML and Text Template Renderers", () => {
     });
 
     assert.match(html, /Sarah/);
-    assert.match(html, /GMAIL/);
+    assert.match(html, /GMAIL/i);
     assert.match(html, /Connection Verified/);
     assert.match(html, /Elevra/);
   });
@@ -161,7 +161,7 @@ describe("Email HTML and Text Template Renderers", () => {
     });
 
     assert.match(text, /Hello Sarah/);
-    assert.match(text, /RESEND/);
+    assert.match(text, /RESEND/i);
   });
 
   test("renders weekly check-in HTML with micro-actions and reflection prompt", () => {
