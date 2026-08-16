@@ -5,7 +5,7 @@ import { setAuthMock } from "@/lib/auth/get-current-user";
 import { MockRepositoryStore } from "@/test-utils/test-mock-db";
 import { setupTestDatabase } from "@/test-utils/mock-drizzle";
 import { nvidiaNIMProvider } from "@/lib/ai/nvidia-nim";
-import { rateLimiter } from "@/lib/security/rate-limit";
+import { rateLimiter, RATE_LIMIT_TIERS } from "@/lib/security/rate-limit";
 import {
   AIRateLimitError,
   AITimeoutError,
@@ -16,7 +16,6 @@ import type { CoachingGenerationResult } from "@/lib/ai/provider";
 
 describe("Chat Route Handler (/api/chat)", () => {
   let store: MockRepositoryStore;
-  const originalGenerateCoaching = nvidiaNIMProvider.generateCoaching;
 
   const mockSuccessfulCoachingResult: CoachingGenerationResult = {
     response: {
@@ -129,9 +128,9 @@ describe("Chat Route Handler (/api/chat)", () => {
     });
 
     test("enforces sliding-window rate limit when requests exceed quota", async () => {
-      // Send rapid requests to exceed rate limit (CHAT tier = 20 req/min)
+      // Send 20 requests to hit quota limit
       for (let i = 0; i < 20; i++) {
-        rateLimiter.check("chat:user_chat_test", { maxRequests: 20, windowMs: 60000 });
+        rateLimiter.check("chat:user_chat_test", RATE_LIMIT_TIERS.CHAT);
       }
 
       const req = new Request("http://localhost:3000/api/chat", {
@@ -260,7 +259,7 @@ describe("Chat Route Handler (/api/chat)", () => {
 
       const res = await POST(req);
       assert.equal(res.status, 200);
-      assert.ok(passedMessagesCount <= 10, "History passed to NIM must not exceed 10 messages");
+      assert.ok(passedMessagesCount <= 10, `History passed (${passedMessagesCount}) must not exceed 10 messages`);
     });
   });
 
@@ -280,7 +279,7 @@ describe("Chat Route Handler (/api/chat)", () => {
       assert.equal(res.status, 429);
       const json = await res.json();
       assert.equal(json.success, false);
-      assert.equal(json.error.code, "AI_RATE_LIMIT");
+      assert.equal(json.error.code, "AI_RATE_LIMIT_ERROR");
     });
 
     test("handles NIM Timeout error gracefully", async () => {
@@ -298,7 +297,7 @@ describe("Chat Route Handler (/api/chat)", () => {
       assert.equal(res.status, 504);
       const json = await res.json();
       assert.equal(json.success, false);
-      assert.equal(json.error.code, "AI_TIMEOUT");
+      assert.equal(json.error.code, "AI_TIMEOUT_ERROR");
     });
 
     test("handles NIM Server / Upstream Error (500/502/503) gracefully", async () => {
@@ -331,7 +330,7 @@ describe("Chat Route Handler (/api/chat)", () => {
       });
 
       const res = await POST(req);
-      assert.equal(res.status, 502);
+      assert.equal(res.status, 422);
       const json = await res.json();
       assert.equal(json.success, false);
       assert.equal(json.error.code, "AI_VALIDATION_ERROR");
