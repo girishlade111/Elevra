@@ -5,8 +5,8 @@
  * @server-only
  */
 import { type EmailProvider, type EmailProviderType, type EmailSendResult, type EmailConnectionTestResult } from "./provider";
-import { ResendEmailProvider } from "./resend.ts";
-import { GmailEmailProvider } from "./gmail.ts";
+import { ResendEmailProvider } from "./resend";
+import { GmailEmailProvider } from "./gmail";
 import {
   getEmailConnectionWithCredentials,
   updateLastTested,
