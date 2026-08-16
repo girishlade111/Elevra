@@ -56,10 +56,14 @@ class RateLimiter {
   }
 
   /**
-   * Resets rate limit records for a given key (e.g. after successful auth).
+   * Resets rate limit records for a given key, or clears all records if no key is provided.
    */
-  reset(key: string): void {
-    this.storage.delete(key);
+  reset(key?: string): void {
+    if (key) {
+      this.storage.delete(key);
+    } else {
+      this.storage.clear();
+    }
   }
 
   private maybeCleanup(now: number): void {

@@ -128,8 +128,8 @@ describe("Chat Route Handler (/api/chat)", () => {
     });
 
     test("enforces sliding-window rate limit when requests exceed quota", async () => {
-      // Send 20 requests to hit quota limit
-      for (let i = 0; i < 20; i++) {
+      // Send 30 requests to hit quota limit (CHAT tier = 30 req/min)
+      for (let i = 0; i < 30; i++) {
         rateLimiter.check("chat:user_chat_test", RATE_LIMIT_TIERS.CHAT);
       }
 
