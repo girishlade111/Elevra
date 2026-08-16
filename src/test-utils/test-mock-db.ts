@@ -278,10 +278,10 @@ export class MockRepositoryStore {
   // Email Connection operations
   async upsertEmailConnection(
     clerkUserId: string,
-    data: { email: string; appPassword?: string; provider?: "resend" | "gmail" }
+    data: { email: string; appPassword?: string; encryptedAppPassword?: string; provider?: "resend" | "gmail" }
   ): Promise<EmailConnection> {
     const now = new Date();
-    const encrypted = data.appPassword ? encryptCredential(data.appPassword) : "";
+    const encrypted = data.encryptedAppPassword || (data.appPassword ? encryptCredential(data.appPassword) : "");
     const existing = this.store.emailConnections.get(clerkUserId);
 
     const record: EmailConnection = {
