@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "npx tsx --test src/lib/ai/__tests__/*.test.ts src/lib/coaching/__tests__/*.test.ts src/lib/email/__tests__/*.test.ts src/lib/security/__tests__/*.test.ts",
+    "test": "npx tsx --test src/lib/ai/__tests__/*.test.ts src/lib/coaching/__tests__/*.test.ts src/lib/email/__tests__/*.test.ts src/lib/security/__tests__/*.test.ts src/lib/observability/__tests__/*.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
