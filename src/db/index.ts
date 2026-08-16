@@ -46,6 +46,10 @@ export function getDb(): ReturnType<typeof drizzle<typeof schema>> {
   return _db;
 }
 
+export function setTestDb(mockDb: ReturnType<typeof drizzle<typeof schema>> | null): void {
+  _db = mockDb;
+}
+
 /**
  * Typed alias — use this in repository files for clarity.
  */
@@ -55,3 +59,4 @@ export type Db = ReturnType<typeof getDb>;
  * Database type alias (for external use via "@/db").
  */
 export type Database = Db;
+
