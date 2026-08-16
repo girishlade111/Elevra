@@ -5,13 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   MessageSquare,
-  History,
   TrendingUp,
   Mail,
   User,
   Settings,
   Sparkles,
-  Home,
+  LayoutDashboard,
   Menu,
   X,
 } from "lucide-react";
@@ -28,39 +27,30 @@ export function AppSidebar({ userEmail, userName }: AppSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
-  const navigationSections = [
-    {
-      title: "Workspace",
-      items: [
-        { title: "Overview", href: ROUTES.app.dashboard, icon: Home },
-        { title: "AI Coach", href: ROUTES.app.coach, icon: MessageSquare },
-        { title: "History", href: ROUTES.app.coachHistory, icon: History },
-      ],
-    },
-    {
-      title: "Growth & Insights",
-      items: [
-        { title: "Progress & Metrics", href: ROUTES.app.progress, icon: TrendingUp },
-        { title: "Weekly Check-ins", href: ROUTES.app.checkIns, icon: Mail },
-        { title: "Confidence Profile", href: ROUTES.app.profile, icon: User },
-      ],
-    },
-    {
-      title: "Configuration",
-      items: [
-        { title: "Settings", href: ROUTES.app.settings.root, icon: Settings },
-      ],
-    },
+  const navigationItems = [
+    { title: "Overview", href: ROUTES.app.dashboard, icon: LayoutDashboard, exact: true },
+    { title: "Coach", href: ROUTES.app.coach, icon: MessageSquare, exact: false },
+    { title: "Progress", href: ROUTES.app.progress, icon: TrendingUp, exact: false },
+    { title: "Check-ins", href: ROUTES.app.checkIns, icon: Mail, exact: false },
+    { title: "Profile", href: ROUTES.app.profile, icon: User, exact: false },
+    { title: "Settings", href: ROUTES.app.settings.root, icon: Settings, exact: false },
   ];
+
+  const isItemActive = (item: (typeof navigationItems)[number]) => {
+    if (item.exact) {
+      return pathname === item.href;
+    }
+    return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  };
 
   return (
     <>
-      {/* Mobile Header Bar */}
+      {/* Mobile Top Header */}
       <div className="lg:hidden flex items-center justify-between h-14 px-4 border-b border-border bg-panel text-text-primary sticky top-0 z-40">
-        <div className="flex items-center gap-2 font-semibold text-[14px]">
+        <Link href={ROUTES.app.dashboard} className="flex items-center gap-2 font-semibold text-[14px]">
           <div className="h-2 w-2 rounded-full bg-accent" />
-          <span>Confidence Coach</span>
-        </div>
+          <span>Elevra</span>
+        </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-1.5 rounded-[4px] text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
@@ -70,7 +60,7 @@ export function AppSidebar({ userEmail, userName }: AppSidebarProps) {
         </button>
       </div>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/70 z-40 lg:hidden"
@@ -78,14 +68,14 @@ export function AppSidebar({ userEmail, userName }: AppSidebarProps) {
         />
       )}
 
-      {/* Sidebar (Fixed Desktop ~260px / Sliding Drawer Mobile) */}
+      {/* Sidebar (Desktop Fixed / Mobile Drawer) */}
       <aside
         className={cn(
           "fixed top-0 bottom-0 left-0 z-50 w-[260px] bg-panel border-r border-border flex flex-col justify-between transition-transform duration-200 ease-in-out lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Brand Header */}
+        {/* Brand Header & Nav List */}
         <div>
           <div className="h-14 px-5 flex items-center justify-between border-b border-border">
             <Link
@@ -94,53 +84,51 @@ export function AppSidebar({ userEmail, userName }: AppSidebarProps) {
               onClick={() => setMobileOpen(false)}
             >
               <div className="h-2.5 w-2.5 rounded-full bg-accent" />
-              <span>Confidence Coach</span>
+              <span>Elevra</span>
             </Link>
             <div className="flex items-center gap-1.5 text-[11px] font-medium text-success border border-success/30 bg-success/10 px-1.5 py-0.5 rounded-[3px]">
               <Sparkles className="h-3 w-3" />
-              <span>NIM Active</span>
+              <span>Active</span>
             </div>
           </div>
 
           {/* Navigation Items */}
-          <div className="p-3 space-y-6 overflow-y-auto">
-            {navigationSections.map((section) => (
-              <div key={section.title} className="space-y-1">
-                <div className="px-2.5 py-1 text-[11px] font-medium text-text-muted uppercase tracking-wider">
-                  {section.title}
-                </div>
-                <nav className="space-y-0.5">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive =
-                      item.href === ROUTES.app.dashboard
-                        ? pathname === ROUTES.app.dashboard
-                        : pathname.startsWith(item.href);
+          <div className="p-3 space-y-1 overflow-y-auto">
+            <div className="px-2.5 py-1.5 text-[11px] font-medium text-text-muted uppercase tracking-wider">
+              Navigation
+            </div>
+            <nav className="space-y-1">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const active = isItemActive(item);
 
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setMobileOpen(false)}
-                        className={cn(
-                          "flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] text-[13px] font-normal transition-colors select-none",
-                          isActive
-                            ? "bg-surface-secondary text-text-primary font-medium border border-border"
-                            : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
-                        )}
-                      >
-                        <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-accent" : "text-text-secondary")} />
-                        <span>{item.title}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-            ))}
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-2.5 px-3 py-2 rounded-[4px] text-[13px] font-normal transition-colors select-none",
+                      active
+                        ? "bg-surface-secondary text-text-primary font-medium border border-border border-l-2 border-l-accent"
+                        : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 shrink-0 transition-colors",
+                        active ? "text-accent" : "text-text-muted"
+                      )}
+                    />
+                    <span>{item.title}</span>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         </div>
 
-        {/* Authenticated User Menu Footer */}
+        {/* User Account Footer */}
         <div className="p-3 border-t border-border bg-panel">
           <UserMenu userEmail={userEmail} userName={userName} />
         </div>
