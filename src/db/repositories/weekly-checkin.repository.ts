@@ -2,7 +2,7 @@
  * @fileoverview Weekly check-in repository — tracking sent email summaries.
  * @server-only
  */
-import { eq, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "@/db";
 import { weeklyCheckins } from "@/db/schema/emails";
@@ -85,7 +85,7 @@ export async function updateCheckinStatus(
  */
 export async function listCheckins(
   clerkUserId: string,
-  limit = 20
+  limit = 50
 ): Promise<WeeklyCheckin[]> {
   const db = getDb();
 
@@ -95,6 +95,29 @@ export async function listCheckins(
     .where(eq(weeklyCheckins.clerkUserId, clerkUserId))
     .orderBy(desc(weeklyCheckins.createdAt))
     .limit(limit);
+}
+
+/**
+ * Returns a single check-in scoped to the given Clerk user.
+ */
+export async function getCheckin(
+  id: string,
+  clerkUserId: string
+): Promise<WeeklyCheckin | null> {
+  const db = getDb();
+
+  const rows = await db
+    .select()
+    .from(weeklyCheckins)
+    .where(
+      and(
+        eq(weeklyCheckins.id, id),
+        eq(weeklyCheckins.clerkUserId, clerkUserId)
+      )
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
 }
 
 /**
@@ -114,4 +137,25 @@ export async function getLastCheckin(
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+/**
+ * Counts weekly check-ins for the given Clerk user, optionally filtered by status.
+ */
+export async function countCheckins(
+  clerkUserId: string,
+  status?: WeeklyCheckinStatus
+): Promise<number> {
+  const db = getDb();
+
+  const conditions = status
+    ? and(eq(weeklyCheckins.clerkUserId, clerkUserId), eq(weeklyCheckins.status, status))
+    : eq(weeklyCheckins.clerkUserId, clerkUserId);
+
+  const rows = await db
+    .select({ id: weeklyCheckins.id })
+    .from(weeklyCheckins)
+    .where(conditions);
+
+  return rows.length;
 }
