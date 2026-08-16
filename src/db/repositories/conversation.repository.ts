@@ -3,11 +3,21 @@
  * All queries are scoped by clerkUserId so users can never access each other's data.
  * @server-only
  */
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "@/db";
-import { conversations } from "@/db/schema/coaching";
+import { conversations, conversationMessages } from "@/db/schema/coaching";
 import type { Conversation, NewConversation } from "@/db/schema/coaching";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface ConversationWithDetails extends Conversation {
+  messageCount: number;
+  lastMessagePreview: string | null;
+  lastIntent: string | null;
+}
 
 // ---------------------------------------------------------------------------
 // Repository functions
@@ -18,7 +28,7 @@ import type { Conversation, NewConversation } from "@/db/schema/coaching";
  */
 export async function createConversation(
   clerkUserId: string,
-  title = "New Conversation"
+  title = "New Coaching Session"
 ): Promise<Conversation> {
   const db = getDb();
   const now = new Date();
@@ -75,6 +85,90 @@ export async function listConversations(
 }
 
 /**
+ * Lists conversations with enriched metadata (message count, last message preview, last intent).
+ */
+export async function listConversationsWithDetails(
+  clerkUserId: string,
+  limit = 50
+): Promise<ConversationWithDetails[]> {
+  const db = getDb();
+
+  const convList = await db
+    .select()
+    .from(conversations)
+    .where(eq(conversations.clerkUserId, clerkUserId))
+    .orderBy(desc(conversations.updatedAt))
+    .limit(limit);
+
+  if (convList.length === 0) {
+    return [];
+  }
+
+  const convIds = convList.map((c) => c.id);
+
+  // Fetch all messages for these conversations to compute counts and last previews
+  const allMessages = await db
+    .select({
+      id: conversationMessages.id,
+      conversationId: conversationMessages.conversationId,
+      role: conversationMessages.role,
+      content: conversationMessages.content,
+      intent: conversationMessages.intent,
+      createdAt: conversationMessages.createdAt,
+    })
+    .from(conversationMessages)
+    .where(
+      and(
+        eq(conversationMessages.clerkUserId, clerkUserId),
+        inArray(conversationMessages.conversationId, convIds)
+      )
+    )
+    .orderBy(desc(conversationMessages.createdAt));
+
+  // Map messages by conversationId
+  const messagesByConv = new Map<string, typeof allMessages>();
+  for (const msg of allMessages) {
+    const list = messagesByConv.get(msg.conversationId) || [];
+    list.push(msg);
+    messagesByConv.set(msg.conversationId, list);
+  }
+
+  return convList.map((conv) => {
+    const msgs = messagesByConv.get(conv.id) || [];
+    const messageCount = msgs.length;
+    const latestMessage = msgs[0] ?? null;
+
+    let lastMessagePreview: string | null = null;
+    let lastIntent: string | null = null;
+
+    if (latestMessage) {
+      lastIntent = latestMessage.intent;
+      try {
+        if (latestMessage.role === "assistant") {
+          const parsed = JSON.parse(latestMessage.content);
+          lastMessagePreview = parsed.main_advice || parsed.coachingMessage || latestMessage.content;
+        } else {
+          lastMessagePreview = latestMessage.content;
+        }
+      } catch {
+        lastMessagePreview = latestMessage.content;
+      }
+
+      if (lastMessagePreview && lastMessagePreview.length > 120) {
+        lastMessagePreview = lastMessagePreview.slice(0, 117).trim() + "...";
+      }
+    }
+
+    return {
+      ...conv,
+      messageCount,
+      lastMessagePreview,
+      lastIntent,
+    };
+  });
+}
+
+/**
  * Updates the title of a conversation, scoped to the given Clerk user.
  */
 export async function updateConversationTitle(
@@ -106,14 +200,24 @@ export async function touchConversation(
 }
 
 /**
- * Deletes a conversation (and cascades to its messages via FK).
- * Scoped to the given Clerk user.
+ * Deletes a conversation (and explicitly deletes messages for safety).
+ * Scoped strictly to the given Clerk user.
  */
 export async function deleteConversation(
   id: string,
   clerkUserId: string
 ): Promise<void> {
   const db = getDb();
+
+  // Explicit message cleanup for databases where cascade might be manual
+  await db
+    .delete(conversationMessages)
+    .where(
+      and(
+        eq(conversationMessages.conversationId, id),
+        eq(conversationMessages.clerkUserId, clerkUserId)
+      )
+    );
 
   await db
     .delete(conversations)
