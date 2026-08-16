@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth/require-auth";
 import { connectEmailSchema } from "@/lib/validation/email";
-import { ResendEmailAdapter } from "@/lib/email/resend-adapter";
-import { GmailSmtpEmailAdapter } from "@/lib/email/gmail-adapter";
+import { emailService } from "@/lib/email/service";
 import {
   upsertEmailConnection,
   updateLastTested,
 } from "@/db/repositories/email-connection.repository";
 import { upsertEmailPreference } from "@/db/repositories/email-preference.repository";
 import type { ApiResponse } from "@/types/api";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
 
     const { userId } = authResult;
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
     const parsed = connectEmailSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -37,23 +38,71 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify connection before storing credentials
-    let verification: { success: boolean; message?: string };
-    if (parsed.data.provider === "resend") {
-      const adapter = new ResendEmailAdapter(parsed.data.apiKey, parsed.data.fromEmail);
-      verification = await adapter.verifyConnection();
-    } else {
-      const adapter = new GmailSmtpEmailAdapter(parsed.data.email, parsed.data.appPassword);
-      verification = await adapter.verifyConnection();
+    if (parsed.data.provider === "gmail") {
+      const { email, appPassword } = parsed.data;
+
+      // 1. Verify Gmail SMTP credentials before persisting to database
+      const testResult = await emailService.testConnection(userId, "gmail", {
+        email,
+        appPassword,
+      });
+
+      if (!testResult.success) {
+        return NextResponse.json<ApiResponse>(
+          {
+            success: false,
+            error: {
+              code: "AUTHENTICATION_FAILED",
+              message:
+                testResult.error ||
+                "Gmail authentication failed. Please verify your Gmail address and 16-character App Password.",
+            },
+            timestamp: new Date().toISOString(),
+          },
+          { status: 400 }
+        );
+      }
+
+      // 2. Encrypt App Password and store safely (Never expose raw app password)
+      const savedConnection = await upsertEmailConnection(userId, {
+        email,
+        appPassword,
+        provider: "gmail",
+      });
+
+      await updateLastTested(userId, true);
+
+      // 3. Update user preferences to use Gmail
+      await upsertEmailPreference(userId, {
+        provider: "gmail",
+        weeklyCheckinsEnabled: true,
+      });
+
+      return NextResponse.json<ApiResponse>(
+        {
+          success: true,
+          data: {
+            provider: "gmail",
+            email: savedConnection.email,
+            isConnected: savedConnection.isConnected,
+            lastTestedAt: savedConnection.lastTestedAt,
+            message: "Gmail SMTP connected and verified successfully.",
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 200 }
+      );
     }
 
-    if (!verification.success) {
+    // Resend Provider Selection
+    const testResult = await emailService.testConnection(userId, "resend");
+    if (!testResult.success) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
           error: {
-            code: "CONNECTION_FAILED",
-            message: verification.message || "Failed to verify email provider credentials",
+            code: "CONFIG_UNAVAILABLE",
+            message: testResult.error || "Resend configuration is not available on the server.",
           },
           timestamp: new Date().toISOString(),
         },
@@ -61,20 +110,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Persist Gmail connection with encrypted App Password
-    if (parsed.data.provider === "gmail_smtp") {
-      await upsertEmailConnection(userId, {
-        email: parsed.data.email ?? "",
-        appPassword: parsed.data.appPassword ?? "",
-        provider: "gmail",
-      });
-      await updateLastTested(userId, true);
-    }
-
-    // Update email preferences to record which provider is active
-    const providerKey = parsed.data.provider === "resend" ? "resend" : "gmail";
     await upsertEmailPreference(userId, {
-      provider: providerKey,
+      provider: "resend",
       weeklyCheckinsEnabled: true,
     });
 
@@ -82,9 +119,8 @@ export async function POST(req: Request) {
       {
         success: true,
         data: {
-          provider: parsed.data.provider,
-          status: "connected",
-          updatedAt: new Date().toISOString(),
+          provider: "resend",
+          message: "Resend selected as active delivery provider.",
         },
         timestamp: new Date().toISOString(),
       },
