@@ -4,12 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import {
   Mail,
-  CheckCircle2,
   Clock,
   AlertCircle,
   X,
   Settings,
-  ExternalLink,
   ChevronRight,
   Send,
 } from "lucide-react";
