@@ -16,6 +16,7 @@ describe("Onboarding Route Handler (/api/onboarding)", () => {
       async () => ({
         id: "user_onboard_test",
         firstName: "Morgan",
+        lastName: "Freeman",
         name: "Morgan Freeman",
         emailAddresses: [{ id: "e1", emailAddress: "morgan@example.com" }],
       })
