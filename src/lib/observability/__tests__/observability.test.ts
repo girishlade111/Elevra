@@ -34,6 +34,32 @@ describe("Unified Error Model & Status Mappings", () => {
     assert.equal(err.code, "NOT_FOUND");
   });
 
+  test("ForbiddenError produces 403 and user-facing message", () => {
+    const err = new ForbiddenError();
+    assert.equal(err.statusCode, 403);
+    assert.equal(err.code, "FORBIDDEN");
+  });
+
+  test("DatabaseError produces 500 and is retryable", () => {
+    const err = new DatabaseError("Neon socket disconnected");
+    assert.equal(err.statusCode, 500);
+    assert.equal(err.code, "DATABASE_ERROR");
+    assert.equal(err.isRetryable, true);
+  });
+
+  test("AiProviderError produces 502 and is retryable", () => {
+    const err = new AiProviderError("NVIDIA NIM 503 Service Unavailable");
+    assert.equal(err.statusCode, 502);
+    assert.equal(err.code, "AI_PROVIDER_ERROR");
+    assert.equal(err.isRetryable, true);
+  });
+
+  test("EmailProviderError produces 400 and user-facing message", () => {
+    const err = new EmailProviderError("Gmail SMTP auth failed");
+    assert.equal(err.statusCode, 400);
+    assert.equal(err.code, "EMAIL_PROVIDER_ERROR");
+  });
+
   test("RateLimitedError produces 429 and retryable flag", () => {
     const err = new RateLimitedError("Too many chat messages", 5000);
     assert.equal(err.statusCode, 429);

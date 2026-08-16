@@ -5,8 +5,10 @@ export interface ApiResponse<T = unknown> {
     code: string;
     message: string;
     details?: unknown;
+    requestId?: string;
   };
   timestamp: string;
+  requestId?: string;
 }
 
 export interface PaginationParams {
