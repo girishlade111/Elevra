@@ -181,6 +181,10 @@ async function executeSelect(
   const params = extractAllParams(clause);
 
   if (tableName.includes("profiles")) {
+    const isCompletedFilter = clause && JSON.stringify(clause).includes("onboardingCompleted");
+    if (isCompletedFilter) {
+      return await store.listOnboardedProfiles();
+    }
     if (params.length > 0) {
       const p = await store.getProfile(params[0]);
       return p ? [p] : [];
@@ -237,7 +241,19 @@ async function executeSelect(
   }
 
   if (tableName.includes("weekly_checkins")) {
-    return Array.from(store.store.weeklyCheckins.values());
+    let checkins = Array.from(store.store.weeklyCheckins.values());
+    if (params.length > 0) {
+      checkins = checkins.filter((c) => params.includes(c.clerkUserId) || params.includes(c.id));
+    }
+    if (orderDesc) {
+      checkins.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } else {
+      checkins.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    }
+    if (limit !== null) {
+      checkins = checkins.slice(0, limit);
+    }
+    return checkins;
   }
 
   if (tableName.includes("ai_usage")) {
