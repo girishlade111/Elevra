@@ -30,7 +30,7 @@ const TOPIC_RULES: Array<{
     title: "Building confidence in meetings",
   },
   {
-    pattern: /\b(career change|career pivot|transition|new industry|switch career|break into)\b/i,
+    pattern: /\b(career change|change careers?|career pivot|pivot careers?|transition|new industry|switch careers?|break into)\b/i,
     title: "Career transition strategy",
   },
   {
