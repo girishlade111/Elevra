@@ -39,7 +39,7 @@ export function AssistantMessageCard({
             parsed.follow_up_question ||
             parsed.followUpPrompt ||
             "What feels like the most challenging aspect of this for you right now?",
-          intent_detected: parsed.intent_detected || parsed.intent || (intent as any) || "general",
+          intent_detected: (parsed.intent_detected as CoachingIntent) || (intent as CoachingIntent) || "general",
         };
       }
     } catch {
