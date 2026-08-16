@@ -4,6 +4,8 @@ import { deleteEmailConnection } from "@/db/repositories/email-connection.reposi
 import { upsertEmailPreference } from "@/db/repositories/email-preference.repository";
 import type { ApiResponse } from "@/types/api";
 
+export const dynamic = "force-dynamic";
+
 export async function POST() {
   try {
     const authResult = await requireApiAuth();
@@ -13,10 +15,10 @@ export async function POST() {
 
     const { userId } = authResult;
 
-    // Remove the Gmail connection (if any)
+    // 1. Delete encrypted credentials from database
     await deleteEmailConnection(userId);
 
-    // Reset email preferences to resend (default)
+    // 2. Reset provider preference to default Resend (with weekly check-ins paused)
     await upsertEmailPreference(userId, {
       provider: "resend",
       weeklyCheckinsEnabled: false,
@@ -25,7 +27,10 @@ export async function POST() {
     return NextResponse.json<ApiResponse>(
       {
         success: true,
-        data: { message: "Email provider disconnected successfully", updatedAt: new Date().toISOString() },
+        data: {
+          message: "Gmail SMTP disconnected and credentials deleted safely. Weekly check-in history preserved.",
+          updatedAt: new Date().toISOString(),
+        },
         timestamp: new Date().toISOString(),
       },
       { status: 200 }
