@@ -2,7 +2,7 @@
  * @fileoverview Weekly check-in repository — tracking sent email summaries.
  * @server-only
  */
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "@/db";
 import { weeklyCheckins } from "@/db/schema/emails";
@@ -23,6 +23,10 @@ export interface CreateCheckinData {
   recipientEmail: string;
   subject: string;
   content: string;
+  status?: WeeklyCheckinStatus;
+  providerMessageId?: string | null;
+  errorMessage?: string | null;
+  sentAt?: Date | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -30,7 +34,7 @@ export interface CreateCheckinData {
 // ---------------------------------------------------------------------------
 
 /**
- * Creates a new weekly check-in record with `pending` status.
+ * Creates a new weekly check-in record with `pending` status (or specified status).
  */
 export async function createCheckin(data: CreateCheckinData): Promise<WeeklyCheckin> {
   const db = getDb();
@@ -45,10 +49,10 @@ export async function createCheckin(data: CreateCheckinData): Promise<WeeklyChec
       recipientEmail: data.recipientEmail,
       subject: data.subject,
       content: data.content,
-      status: "pending",
-      providerMessageId: null,
-      errorMessage: null,
-      sentAt: null,
+      status: data.status ?? "pending",
+      providerMessageId: data.providerMessageId ?? null,
+      errorMessage: data.errorMessage ?? null,
+      sentAt: data.sentAt ?? (data.status === "sent" ? now : null),
       createdAt: now,
     } satisfies NewWeeklyCheckin)
     .returning();
@@ -137,6 +141,33 @@ export async function getLastCheckin(
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+/**
+ * Checks whether a user has already received a check-in within a specific date window (idempotency).
+ */
+export async function hasCheckinInWindow(
+  clerkUserId: string,
+  sinceDate: Date
+): Promise<boolean> {
+  const db = getDb();
+
+  const rows = await db
+    .select({ id: weeklyCheckins.id })
+    .from(weeklyCheckins)
+    .where(
+      and(
+        eq(weeklyCheckins.clerkUserId, clerkUserId),
+        gte(weeklyCheckins.createdAt, sinceDate),
+        or(
+          eq(weeklyCheckins.status, "sent"),
+          eq(weeklyCheckins.status, "pending")
+        )
+      )
+    )
+    .limit(1);
+
+  return rows.length > 0;
 }
 
 /**

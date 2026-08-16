@@ -167,41 +167,38 @@ describe("Email HTML and Text Template Renderers", () => {
   test("renders weekly check-in HTML with micro-actions and reflection prompt", () => {
     const html = renderWeeklyCheckinHtml({
       userName: "Alex",
-      weekLabel: "Week 34, 2026",
-      activeGoal: "Negotiate higher compensation band",
-      keyInsights: [
-        "Identified anchoring cognitive barrier during salary negotiation.",
-        "Reframed boundary setting as strategic clarity.",
-      ],
-      recommendedMicroAction: {
-        title: "Draft 3 market anchor statements",
-        description: "Write down 3 factual data-backed statements before the discussion.",
-      },
-      reflectionPrompt: "What assumptions are you making about the other party's constraints?",
+      subject: "Elevra Weekly Briefing: Salary Anchor Strategy",
+      greeting: "Hi Alex,",
+      progress_acknowledgment:
+        "Identified anchoring cognitive barrier during salary negotiation and reframed boundary setting as strategic clarity.",
+      weekly_challenge: "Draft 3 market anchor statements before the discussion.",
+      motivational_quote: "Confidence is clarity in action.",
+      closing: "Rooting for your growth,\nYour Elevra Coach",
       appUrl: "http://localhost:3000",
+      monthlyGoal: "Negotiate higher compensation band",
+      careerStage: "Senior Lead",
     });
 
-    assert.match(html, /Alex/);
-    assert.match(html, /Week 34, 2026/);
+    assert.match(html, /Weekly Executive Check-In/);
+    assert.match(html, /Hi Alex,/);
     assert.match(html, /Draft 3 market anchor statements/);
-    assert.match(html, /What assumptions are you making/);
+    assert.match(html, /Confidence is clarity in action/);
   });
 
   test("renders weekly check-in plaintext accurately", () => {
     const text = renderWeeklyCheckinText({
       userName: "Alex",
-      weekLabel: "Week 34, 2026",
-      activeGoal: "Negotiate higher compensation band",
-      keyInsights: ["Anchoring barrier identified."],
-      recommendedMicroAction: {
-        title: "Draft 3 statements",
-        description: "Write down 3 statements.",
-      },
-      reflectionPrompt: "What is your main fear?",
+      subject: "Elevra Weekly Briefing: Salary Anchor Strategy",
+      greeting: "Hi Alex,",
+      progress_acknowledgment: "Identified anchoring barrier during negotiation.",
+      weekly_challenge: "Draft 3 statements.",
+      motivational_quote: "Confidence is clarity in action.",
+      closing: "Rooting for your growth,\nYour Elevra Coach",
       appUrl: "http://localhost:3000",
+      monthlyGoal: "Negotiate higher compensation band",
     });
 
-    assert.match(text, /WEEKLY EXECUTIVE CONFIDENCE SYNTHESIS/);
+    assert.match(text, /ELEVRA • WEEKLY EXECUTIVE CHECK-IN/);
     assert.match(text, /Draft 3 statements/);
   });
 });

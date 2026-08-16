@@ -134,7 +134,7 @@ export class EmailService {
   ): Promise<EmailSendResult> {
     const { provider, resolvedType } = await this.resolveProvider(clerkUserId, providerOverride);
 
-    const subject = `Elevra Weekly Briefing • ${digestData.weekLabel}`;
+    const subject = digestData.subject;
     const html = renderWeeklyCheckinHtml(digestData);
     const text = renderWeeklyCheckinText(digestData);
 

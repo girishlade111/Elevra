@@ -142,3 +142,17 @@ export async function updateLastActive(clerkUserId: string): Promise<void> {
     .set({ lastActiveAt: new Date(), updatedAt: new Date() })
     .where(eq(profiles.clerkUserId, clerkUserId));
 }
+
+/**
+ * Returns all profiles that have completed onboarding.
+ * Used by scheduled background jobs (e.g. weekly check-in cron).
+ */
+export async function listOnboardedProfiles(): Promise<Profile[]> {
+  const db = getDb();
+
+  return db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.onboardingCompleted, true));
+}
+
