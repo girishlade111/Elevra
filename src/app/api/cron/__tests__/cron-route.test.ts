@@ -16,15 +16,19 @@ describe("Weekly Check-in Cron & Delivery Resiliency (/api/cron/weekly-checkin)"
     setupTestDatabase(store);
     process.env.CRON_SECRET = TEST_SECRET;
 
-    // Mock aiClient chatStructured output
-    aiClient.chatStructured = async () => ({
-      subject: "Your Weekly Growth Briefing: Strategic Alignment",
-      greeting: "Hello, champion!",
-      progress_acknowledgment: "You showed great resilience in your discussions.",
-      weekly_challenge: "Take 5 minutes before your next meeting to set an explicit intention.",
-      motivational_quote: "Clarity breeds confidence.",
-      closing: "Rooting for your continued ascent, Elevra Coach.",
-    } as any);
+    // Mock aiClient generateCoachingResponse output
+    aiClient.generateCoachingResponse = async () => ({
+      rawText: JSON.stringify({
+        subject: "Your Weekly Growth Briefing: Strategic Alignment",
+        greeting: "Hello, champion!",
+        progress_acknowledgment: "You showed great resilience in your discussions.",
+        weekly_challenge: "Take 5 minutes before your next meeting to set an explicit intention.",
+        motivational_quote: "Clarity breeds confidence.",
+        closing: "Rooting for your continued ascent, Elevra Coach.",
+      }),
+      usage: { promptTokens: 100, completionTokens: 200, totalTokens: 300 },
+      model: "meta/llama-3.1-70b-instruct",
+    });
 
     // Mock emailService resolveProvider & send
     emailService.resolveProvider = async (userId: string) => {
@@ -215,7 +219,7 @@ describe("Weekly Check-in Cron & Delivery Resiliency (/api/cron/weekly-checkin)"
       });
 
       // AI client throws error
-      aiClient.chatStructured = async () => {
+      aiClient.generateCoachingResponse = async () => {
         throw new Error("NVIDIA NIM temporary upstream 503");
       };
 
