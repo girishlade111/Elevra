@@ -33,7 +33,6 @@ export default async function DashboardPage() {
   const {
     profile,
     emailPreference,
-    lastCheckin,
     recentConversations,
     recentIntents,
     conversationsThisMonth,
