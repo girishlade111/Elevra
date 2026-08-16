@@ -315,16 +315,24 @@ async function executeUpdate(
 
 async function executeDelete(store: MockRepositoryStore, table: any, clause: any): Promise<any> {
   const tableName = resolveTableName(table);
-  const userId = extractUserId(clause);
+  const params = extractAllParams(clause);
 
-  if (tableName.includes("profiles") && userId) {
-    await store.deleteProfile(userId);
+  if (tableName.includes("profiles") && params[0]) {
+    await store.deleteProfile(params[0]);
   }
-  if (tableName.includes("conversations") && userId) {
-    await store.clearAllConversations(userId);
+  if (tableName.includes("conversations")) {
+    if (params.length === 1) {
+      await store.clearAllConversations(params[0]);
+    } else if (params.length >= 2) {
+      const convId = params.find((p) => store.store.conversations.has(p));
+      const userId = params.find((p) => p !== convId);
+      if (convId && userId) {
+        await store.deleteConversation(convId, userId);
+      }
+    }
   }
-  if (tableName.includes("gmail_connections") && userId) {
-    await store.deleteEmailConnection(userId);
+  if (tableName.includes("gmail_connections") && params[0]) {
+    await store.deleteEmailConnection(params[0]);
   }
   return { rowCount: 1 };
 }
