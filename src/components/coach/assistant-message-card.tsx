@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Check, Copy, Sparkles, Target, HelpCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { AICoachingResponse } from "@/lib/ai/schemas";
+import type { AICoachingResponse, CoachingIntent } from "@/lib/ai/schemas";
 
 interface AssistantMessageCardProps {
   content: string;
