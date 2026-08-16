@@ -2,7 +2,7 @@ import type { UserProfile } from "@/types/user";
 import type { ChatMessage } from "@/types/coaching";
 import { aiClient } from "../ai/client";
 import { renderWeeklyCheckinHtml } from "../email/templates";
-import { sendAppEmail } from "../email";
+import { emailService } from "../email/service";
 
 export interface GenerateCheckinParams {
   user: {
@@ -64,16 +64,23 @@ Return a valid JSON object with:
     };
   }
 
-  const emailHtml = renderWeeklyCheckinHtml({
+  const emailData = {
     userName: profile.preferredName || profile.fullName || "there",
-    primaryGoal: profile.primaryGoal,
-    reflectionSummary: parsed.reflectionSummary,
-    recommendedMicroActions: parsed.recommendedMicroActions,
-    coachQuestion: parsed.coachQuestion,
+    weekLabel: "Weekly Briefing",
+    activeGoal: profile.primaryGoal,
+    keyInsights: [parsed.reflectionSummary],
+    recommendedMicroAction: {
+      title: parsed.recommendedMicroActions[0] || "Practice mindful confidence",
+      description: parsed.recommendedMicroActions.slice(1).join(". ") || "Take 5 minutes before your next meeting.",
+    },
+    reflectionPrompt: parsed.coachQuestion,
     appUrl,
-  });
+  };
 
-  const sendResult = await sendAppEmail({
+  const emailHtml = renderWeeklyCheckinHtml(emailData);
+
+  const { provider } = await emailService.resolveProvider(user.id);
+  const sendResult = await provider.send({
     to: user.email,
     subject: `Weekly Confidence Briefing: Progress on "${profile.primaryGoal.slice(0, 40)}..."`,
     html: emailHtml,
