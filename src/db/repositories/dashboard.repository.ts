@@ -4,11 +4,10 @@
  * Never invents fake percentages, fake AI scores, or placeholder analytics.
  * @server-only
  */
-import { eq, and, gte, desc, sql } from "drizzle-orm";
+import { eq, and, gte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { conversations, conversationMessages } from "@/db/schema/coaching";
-import { weeklyCheckins, emailPreferences } from "@/db/schema/emails";
-import { profiles } from "@/db/schema/users";
+import { weeklyCheckins } from "@/db/schema/emails";
 import { getProfile } from "./profile.repository";
 import { listConversationsWithDetails, type ConversationWithDetails } from "./conversation.repository";
 import { getEmailPreference } from "./email-preference.repository";
