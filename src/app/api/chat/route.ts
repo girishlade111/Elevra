@@ -2,10 +2,18 @@ import { NextResponse } from "next/server";
 import { requireApiAuth } from "@/lib/auth/require-auth";
 import { sendMessageSchema } from "@/lib/validation/chat";
 import { nvidiaNIMProvider } from "@/lib/ai/nvidia-nim";
-import { getProfile } from "@/db/repositories/profile.repository";
+import { getProfile, updateLastActive } from "@/db/repositories/profile.repository";
 import { getRecentMessages, createMessage } from "@/db/repositories/message.repository";
-import { getConversation, createConversation, touchConversation } from "@/db/repositories/conversation.repository";
+import {
+  getConversation,
+  createConversation,
+  touchConversation,
+  updateConversationTitle,
+} from "@/db/repositories/conversation.repository";
 import { recordUsage } from "@/db/repositories/ai-usage.repository";
+import { getMemory } from "@/db/repositories/memory.repository";
+import { generateConversationTitle } from "@/lib/coaching/title-generator";
+import { detectIntentLocal } from "@/lib/ai/intent";
 import { AIError } from "@/lib/ai/errors";
 import type { ApiResponse } from "@/types/api";
 
@@ -13,6 +21,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
+    // 1. Authenticate with Clerk & 2. Get Clerk userId server-side
     const authResult = await requireApiAuth(true);
     if (authResult.errorResponse) {
       return authResult.errorResponse;
@@ -20,7 +29,26 @@ export async function POST(req: Request) {
 
     const { userId, user } = authResult;
 
-    const body = await req.json();
+    // 3. Load profile from Neon DB
+    const profile = await getProfile(userId);
+
+    // 4. Verify onboarding_completed = true
+    if (!profile || !profile.onboardingCompleted) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: {
+            code: "ONBOARDING_INCOMPLETE",
+            message: "Please complete your onboarding profile before starting a coaching session.",
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 403 }
+      );
+    }
+
+    // 5. Validate incoming message with Zod
+    const body = await req.json().catch(() => null);
     const parsed = sendMessageSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -40,37 +68,67 @@ export async function POST(req: Request) {
 
     const { message, conversationId } = parsed.data;
 
-    // 1. Ensure conversation exists
+    // 6. Detect intent early for context and title generation
+    const localIntentResult = detectIntentLocal(message);
+    const preDetectedIntent = localIntentResult.isConfident ? localIntentResult.intent : undefined;
+
+    // 7. Load or create conversation (strictly scoped to userId, preventing unauthorized access)
     let activeConversationId = conversationId;
+    let isNewConversation = false;
+
     if (activeConversationId) {
       const existingConv = await getConversation(activeConversationId, userId);
       if (!existingConv) {
-        const createdConv = await createConversation(userId, message.slice(0, 40));
+        // ID provided but does not belong to this user or was deleted -> create a new one safely
+        const generatedTitle = generateConversationTitle(message, preDetectedIntent);
+        const createdConv = await createConversation(userId, generatedTitle);
         activeConversationId = createdConv.id;
+        isNewConversation = true;
       }
     } else {
-      const createdConv = await createConversation(userId, message.slice(0, 40));
+      const generatedTitle = generateConversationTitle(message, preDetectedIntent);
+      const createdConv = await createConversation(userId, generatedTitle);
       activeConversationId = createdConv.id;
+      isNewConversation = true;
     }
 
-    // 2. Fetch User Profile for Personalization
-    const profile = await getProfile(userId);
-    const userName = profile?.name || user?.firstName || user?.name || "Client";
-    const careerStage = profile?.careerStage || "Professional";
-    const biggestChallenge = profile?.challenge || "Navigating high-stakes career scenarios";
-    const monthlyGoal = profile?.monthlyGoal || "Strengthen unshakeable confidence and assertive impact";
-
-    // 3. Fetch Recent Messages (last 5 exchanges = 10 messages max)
+    // 8. Load last 5 meaningful exchanges (10 messages max)
     const dbMessages = await getRecentMessages(activeConversationId, userId, 10);
-    // Reverse because getRecentMessages returns newest first
+    // Reverse because getRecentMessages returns newest-first
     const recentMessages = dbMessages
       .reverse()
-      .map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      }));
+      .map((m) => {
+        let textContent = m.content;
+        if (m.role === "assistant") {
+          try {
+            const parsedJson = JSON.parse(m.content);
+            textContent = parsedJson.main_advice || m.content;
+          } catch {
+            textContent = m.content;
+          }
+        }
+        return {
+          role: m.role as "user" | "assistant",
+          content: textContent,
+        };
+      });
 
-    // 4. Generate Structured Coaching Completion via NVIDIA NIM
+    // 9. Build personalized coaching context
+    const memoryRecord = await getMemory(userId);
+    const userName = profile.name || user?.firstName || user?.name || "Client";
+    const careerStage = profile.careerStage || "Professional";
+    const biggestChallenge = profile.challenge || "Navigating high-stakes career scenarios";
+    const monthlyGoal = profile.monthlyGoal || "Strengthen unshakeable confidence and assertive impact";
+
+    // 12a. Save user message first (stored before assistant response)
+    await createMessage({
+      conversationId: activeConversationId,
+      clerkUserId: userId,
+      role: "user",
+      content: message,
+    });
+
+    // 10. Send request to NVIDIA NIM
     const coachingResult = await nvidiaNIMProvider.generateCoaching({
       message,
       context: {
@@ -79,17 +137,17 @@ export async function POST(req: Request) {
         biggestChallenge,
         monthlyGoal,
         recentMessages,
+        longTermMemory: memoryRecord ? { summaryText: memoryRecord.summary } : undefined,
       },
     });
 
-    // 5. Persist User Message and Assistant Message to DB
-    await createMessage({
-      conversationId: activeConversationId,
-      clerkUserId: userId,
-      role: "user",
-      content: message,
-    });
+    // If conversation was pre-existing but had default title, update title based on first real turn
+    if (!isNewConversation && dbMessages.length === 0) {
+      const refinedTitle = generateConversationTitle(message, coachingResult.intent);
+      await updateConversationTitle(activeConversationId, userId, refinedTitle);
+    }
 
+    // 13. Save assistant message with structured output contract
     await createMessage({
       conversationId: activeConversationId,
       clerkUserId: userId,
@@ -98,9 +156,13 @@ export async function POST(req: Request) {
       intent: coachingResult.intent,
     });
 
+    // 14. Update conversation updated_at
     await touchConversation(activeConversationId, userId);
 
-    // 6. Record Token Consumption in ai_usage table (only on successful completion)
+    // 15. Update last_active_at on profile
+    await updateLastActive(userId);
+
+    // 16. Record Token Consumption in ai_usage table (safe async)
     try {
       if (coachingResult.usage.inputTokens !== null && coachingResult.usage.outputTokens !== null) {
         await recordUsage({
@@ -112,9 +174,10 @@ export async function POST(req: Request) {
         });
       }
     } catch (usageErr) {
-      console.warn("[api/chat] Failed to log AI token usage:", usageErr);
+      console.warn("[api/chat] Token recording non-fatal warning:", usageErr);
     }
 
+    // 17. Return validated response to client
     return NextResponse.json<ApiResponse>(
       {
         success: true,

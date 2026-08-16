@@ -3,9 +3,11 @@ import { requireApiAuth } from "@/lib/auth/require-auth";
 import { createConversationSchema } from "@/lib/validation/chat";
 import {
   createConversation,
-  listConversations,
+  listConversationsWithDetails,
 } from "@/db/repositories/conversation.repository";
 import type { ApiResponse } from "@/types/api";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -16,7 +18,7 @@ export async function GET() {
 
     const { userId } = authResult;
 
-    const conversations = await listConversations(userId, 50);
+    const conversations = await listConversationsWithDetails(userId, 50);
 
     return NextResponse.json<ApiResponse>(
       {
@@ -25,6 +27,9 @@ export async function GET() {
           id: c.id,
           clerkUserId: c.clerkUserId,
           title: c.title,
+          messageCount: c.messageCount,
+          lastMessagePreview: c.lastMessagePreview,
+          lastIntent: c.lastIntent,
           createdAt: c.createdAt.toISOString(),
           updatedAt: c.updatedAt.toISOString(),
         })),
