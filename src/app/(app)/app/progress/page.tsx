@@ -5,7 +5,6 @@ import {
   Sparkles,
   ArrowRight,
   Clock,
-  Target,
   Zap,
   CheckCircle2,
   Cpu,
