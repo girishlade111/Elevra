@@ -76,7 +76,7 @@ export function ChoiceList({
               "w-full p-3.5 sm:p-4 rounded-[6px] border text-left transition-all duration-150 flex items-center justify-between group relative select-none",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               isSelected
-                ? "border-accent bg-accent/10 text-text-primary ring-1 ring-accent/30 shadow-[0_0_15px_rgba(224,120,86,0.08)]"
+                ? "border-accent bg-accent/10 text-text-primary ring-1 ring-accent/30"
                 : "border-border bg-panel text-text-secondary hover:border-text-muted/60 hover:bg-surface-hover hover:text-text-primary",
               disabled && "opacity-60 cursor-not-allowed pointer-events-none"
             )}

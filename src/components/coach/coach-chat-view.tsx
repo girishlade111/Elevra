@@ -323,7 +323,12 @@ export function CoachChatView({
       </header>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div
+        className="flex-1 overflow-y-auto px-4 py-6"
+        role="log"
+        aria-live="polite"
+        aria-label="Coaching conversation transcript"
+      >
         <div className="max-w-3xl mx-auto space-y-5">
           {/* Empty State / Starter Prompts */}
           {messages.length === 0 && (

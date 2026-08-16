@@ -35,6 +35,43 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Accessible focus ring for keyboard navigation */
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Skip link for screen reader and keyboard accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 12px;
+  background-color: var(--accent);
+  color: #0d0d0d;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  z-index: 100;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* Respect user's system motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Dense, settings-style row utility */
 .dense-row {
   display: flex;

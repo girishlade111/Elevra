@@ -10,7 +10,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ title, description, actions }: AppHeaderProps) {
   return (
-    <header className="h-14 border-b border-border bg-panel px-6 sm:px-8 md:px-10 lg:px-12 flex items-center justify-between sticky top-0 z-30">
+    <header className="h-14 border-b border-border bg-panel px-4 sm:px-6 md:px-8 lg:px-10 flex items-center justify-between sticky top-0 z-30">
       <div className="flex flex-col">
         {title && (
           <h1 className="text-[15px] font-semibold text-text-primary leading-tight">

@@ -116,10 +116,11 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           {/* Name & Email Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="block text-[13px] font-medium text-text-primary">
+              <label htmlFor="profile-full-name" className="block text-[13px] font-medium text-text-primary">
                 Full Name
               </label>
               <Input
+                id="profile-full-name"
                 type="text"
                 required
                 value={formData.name}
@@ -131,7 +132,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="block text-[13px] font-medium text-text-primary">
+                <label htmlFor="profile-email" className="block text-[13px] font-medium text-text-primary">
                   Email Address
                 </label>
                 <span className="text-[11px] text-text-muted flex items-center gap-1">
@@ -139,6 +140,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 </span>
               </div>
               <Input
+                id="profile-email"
                 type="email"
                 disabled
                 value={formData.email}
@@ -149,10 +151,11 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
           {/* Career Stage Selector */}
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-text-primary">
+            <label htmlFor="profile-career-stage" className="block text-[13px] font-medium text-text-primary">
               Career Stage
             </label>
             <select
+              id="profile-career-stage"
               value={formData.careerStage}
               onChange={(e) => setFormData({ ...formData, careerStage: e.target.value })}
               className="w-full h-9 rounded-md border border-border bg-surface-secondary px-3 py-1 text-[13.5px] text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
@@ -168,10 +171,11 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
           {/* Primary Challenge */}
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-text-primary">
+            <label htmlFor="profile-challenge" className="block text-[13px] font-medium text-text-primary">
               Primary Immediate Challenge
             </label>
             <Textarea
+              id="profile-challenge"
               required
               rows={3}
               value={formData.challenge}
@@ -186,10 +190,11 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
           {/* Current Monthly Goal */}
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-text-primary">
+            <label htmlFor="profile-monthly-goal" className="block text-[13px] font-medium text-text-primary">
               Current Monthly Objective
             </label>
             <Textarea
+              id="profile-monthly-goal"
               required
               rows={3}
               value={formData.monthlyGoal}
