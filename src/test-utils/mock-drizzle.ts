@@ -165,6 +165,29 @@ function extractAllParams(clause: any): string[] {
   return params;
 }
 
+function hasClauseIdentifier(clause: any, identifier: string): boolean {
+  if (!clause) return false;
+  const seen = new Set();
+
+  function walk(node: any): boolean {
+    if (!node || typeof node !== "object") return false;
+    if (seen.has(node)) return false;
+    seen.add(node);
+
+    if (node.name === identifier || (node._ && node._.name === identifier)) return true;
+    if (typeof node.value === "string" && node.value.includes(identifier)) return true;
+
+    if (Array.isArray(node.queryChunks)) {
+      for (const chunk of node.queryChunks) {
+        if (walk(chunk)) return true;
+      }
+    }
+    return false;
+  }
+
+  return walk(clause);
+}
+
 function extractUserId(clause: any): string | null {
   const params = extractAllParams(clause);
   return params[0] || null;
@@ -181,7 +204,7 @@ async function executeSelect(
   const params = extractAllParams(clause);
 
   if (tableName.includes("profiles")) {
-    const isCompletedFilter = clause && JSON.stringify(clause).includes("onboardingCompleted");
+    const isCompletedFilter = hasClauseIdentifier(clause, "onboarding_completed") || hasClauseIdentifier(clause, "onboardingCompleted");
     if (isCompletedFilter) {
       return await store.listOnboardedProfiles();
     }
