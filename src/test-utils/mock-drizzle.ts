@@ -33,7 +33,7 @@ export function setupTestDatabase(store: MockRepositoryStore = mockStore) {
         },
         then: async (resolve: any, reject?: any) => {
           try {
-            const results = await executeSelect(store, targetTable, whereClause, limitCount);
+            const results = await executeSelect(store, targetTable, whereClause, limitCount, orderDesc);
             return resolve(results);
           } catch (err) {
             if (reject) return reject(err);
@@ -130,64 +130,107 @@ function resolveTableName(table: any): string {
   return "unknown";
 }
 
-function extractUserId(clause: any): string | null {
-  if (!clause) return null;
-  if (clause.value !== undefined && typeof clause.value === "string") return clause.value;
-  if (clause.right !== undefined && typeof clause.right === "string") return clause.right;
-  if (clause.queryChunks && Array.isArray(clause.queryChunks)) {
-    for (const chunk of clause.queryChunks) {
-      if (chunk && typeof chunk.value === "string") return chunk.value;
-      if (chunk && chunk.brand !== undefined && typeof chunk.value === "string") return chunk.value;
-      if (chunk && chunk.value && typeof chunk.value === "object" && typeof chunk.value.value === "string") {
-        return chunk.value.value;
+function extractAllParams(clause: any): string[] {
+  if (!clause) return [];
+  const params: string[] = [];
+
+  function walk(node: any) {
+    if (!node) return;
+    if (typeof node === "string") {
+      params.push(node);
+      return;
+    }
+    if (node.value !== undefined) {
+      if (typeof node.value === "string") {
+        params.push(node.value);
+      } else if (node.value && typeof node.value === "object") {
+        walk(node.value);
+      }
+    }
+    if (node.right !== undefined) {
+      if (typeof node.right === "string") {
+        params.push(node.right);
+      } else {
+        walk(node.right);
+      }
+    }
+    if (node.queryChunks && Array.isArray(node.queryChunks)) {
+      for (const chunk of node.queryChunks) {
+        walk(chunk);
       }
     }
   }
-  return null;
+
+  walk(clause);
+  return params;
+}
+
+function extractUserId(clause: any): string | null {
+  const params = extractAllParams(clause);
+  return params[0] || null;
 }
 
 async function executeSelect(
   store: MockRepositoryStore,
   table: any,
   clause: any,
-  limit: number | null
+  limit: number | null,
+  orderDesc = false
 ): Promise<any[]> {
   const tableName = resolveTableName(table);
+  const params = extractAllParams(clause);
 
   if (tableName.includes("profiles")) {
-    const userId = extractUserId(clause);
-    if (userId) {
-      const p = await store.getProfile(userId);
+    if (params.length > 0) {
+      const p = await store.getProfile(params[0]);
       return p ? [p] : [];
     }
     return Array.from(store.store.profiles.values());
   }
 
   if (tableName.includes("conversations")) {
-    const userId = extractUserId(clause);
-    if (userId) {
-      return Array.from(store.store.conversations.values()).filter((c) => c.clerkUserId === userId);
+    let convs = Array.from(store.store.conversations.values());
+    if (params.length === 1) {
+      const p = params[0];
+      convs = convs.filter((c) => c.clerkUserId === p || c.id === p);
+    } else if (params.length >= 2) {
+      convs = convs.filter((c) => params.includes(c.id) && params.includes(c.clerkUserId));
     }
-    return Array.from(store.store.conversations.values());
+    if (limit !== null) {
+      convs = convs.slice(0, limit);
+    }
+    return convs;
   }
 
   if (tableName.includes("conversation_messages") || tableName.includes("messages")) {
-    return Array.from(store.store.messages.values());
+    let msgs = Array.from(store.store.messages.values());
+    if (params.length === 1) {
+      msgs = msgs.filter((m) => m.conversationId === params[0] || m.clerkUserId === params[0]);
+    } else if (params.length >= 2) {
+      msgs = msgs.filter((m) => params.includes(m.conversationId) && params.includes(m.clerkUserId));
+    }
+    if (orderDesc) {
+      msgs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } else {
+      msgs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    }
+    if (limit !== null) {
+      msgs = msgs.slice(0, limit);
+    }
+    return msgs;
   }
 
   if (tableName.includes("email_preferences")) {
-    const userId = extractUserId(clause);
-    if (userId) {
-      const pref = await store.getEmailPreference(userId);
+    if (params.length > 0) {
+      const pref = await store.getEmailPreference(params[0]);
       return pref ? [pref] : [];
     }
     return Array.from(store.store.emailPreferences.values());
   }
 
   if (tableName.includes("gmail_connections") || tableName.includes("email_connections")) {
-    const userId = extractUserId(clause);
-    if (userId) {
-      const conn = await store.getEmailConnection(userId);
+    if (params.length > 0) {
+      const conn = await store.getEmailConnection(params[0]);
       return conn ? [conn] : [];
     }
     return Array.from(store.store.emailConnections.values());
