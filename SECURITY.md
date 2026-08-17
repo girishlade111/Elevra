@@ -35,7 +35,7 @@ This document details the security posture, authentication protocols, credential
 - User-provided Gmail Google App Passwords are encrypted before persisting to the `gmail_connections` table using **AES-256-GCM** ([`src/lib/security/encryption.ts`](file:///c:/Users/Girish%20Lade/OneDrive/Desktop/Elevra/src/lib/security/encryption.ts)):
   - **Random Initialization Vector (IV)**: 16 bytes generated uniquely per encryption operation, ensuring identical passwords produce distinct ciphertexts.
   - **Authentication Tag**: 16 bytes (128-bit) GCM authentication tag verified during decryption to detect any database tampering or bit-flipping attacks.
-  - **Master Key**: 256-bit server-only key configured via `ENCRYPTION_SECRET`.
+  - **Master Key**: 256-bit server-only key (64 hex characters) configured via `GMAIL_ENCRYPTION_KEY` (or `ENCRYPTION_KEY`).
 - **Zero Credential Leakage**:
   - Plaintext passwords and decrypted secrets are never returned in API responses.
   - Plaintext credentials are never rendered in client components or sent to the browser.

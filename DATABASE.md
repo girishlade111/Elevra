@@ -233,7 +233,7 @@ Migrations are managed with `drizzle-kit` and live in `src/db/migrations/`.
 3. Generate an encryption key and add to `.env`:
    ```bash
    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   # → copy output to ENCRYPTION_KEY in .env
+   # → copy output to GMAIL_ENCRYPTION_KEY (or ENCRYPTION_KEY) in .env
    ```
 
 ### Commands
