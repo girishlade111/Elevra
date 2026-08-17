@@ -13,6 +13,11 @@ const serverEnvSchema = z.object({
     .length(64, "ENCRYPTION_KEY must be a 64-character hex string (32 bytes)")
     .regex(/^[0-9a-f]{64}$/i, "ENCRYPTION_KEY must be a lowercase hex string")
     .optional(),
+  GMAIL_ENCRYPTION_KEY: z
+    .string()
+    .length(64, "GMAIL_ENCRYPTION_KEY must be a 64-character hex string (32 bytes)")
+    .regex(/^[0-9a-f]{64}$/i, "GMAIL_ENCRYPTION_KEY must be a lowercase hex string")
+    .optional(),
   NVIDIA_API_KEY: z.string().min(1, "NVIDIA_API_KEY is required for coaching intelligence").optional(),
   NVIDIA_NIM_API_KEY: z.string().optional(),
   NVIDIA_NIM_BASE_URL: z.string().url().default("https://integrate.api.nvidia.com/v1"),
@@ -76,12 +81,14 @@ export function getServerEnv(): ServerEnv {
   }
 
   const apiKey = process.env.NVIDIA_API_KEY || process.env.NVIDIA_NIM_API_KEY;
+  const encryptionKey = process.env.GMAIL_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY;
 
   const parsed = serverEnvSchema.safeParse({
     NODE_ENV: process.env.NODE_ENV,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || "sk_test_placeholder_key_for_setup",
     DATABASE_URL: process.env.DATABASE_URL,
-    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    ENCRYPTION_KEY: encryptionKey,
+    GMAIL_ENCRYPTION_KEY: encryptionKey,
     NVIDIA_API_KEY: apiKey,
     NVIDIA_NIM_API_KEY: apiKey,
     NVIDIA_NIM_BASE_URL: process.env.NVIDIA_NIM_BASE_URL || "https://integrate.api.nvidia.com/v1",
