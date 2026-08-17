@@ -1,3 +1,4 @@
+import * as React from "react";
 import Link from "next/link";
 import { Check, HelpCircle, ArrowRight, Sparkles, Shield, Zap } from "lucide-react";
 import { Container } from "@/components/layout/container";
@@ -283,6 +284,3 @@ export default function PricingPage() {
     </div>
   );
 }
-
-// React fragment import helper
-import React from "react";
