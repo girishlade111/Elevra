@@ -25,11 +25,11 @@ const AUTH_TAG_LENGTH = 16; // 128-bit auth tag
 // ---------------------------------------------------------------------------
 
 function getEncryptionKey(): Buffer {
-  const raw = process.env.ENCRYPTION_KEY;
+  const raw = process.env.GMAIL_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY;
 
   if (!raw) {
     throw new Error(
-      "[encryption] ENCRYPTION_KEY environment variable is not set. " +
+      "[encryption] GMAIL_ENCRYPTION_KEY or ENCRYPTION_KEY environment variable is not set. " +
         "Generate one with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\" " +
         "and add it to .env"
     );
@@ -37,7 +37,7 @@ function getEncryptionKey(): Buffer {
 
   if (!/^[0-9a-f]{64}$/i.test(raw)) {
     throw new Error(
-      "[encryption] ENCRYPTION_KEY must be a 64-character lowercase hex string (32 bytes)."
+      "[encryption] GMAIL_ENCRYPTION_KEY / ENCRYPTION_KEY must be a 64-character lowercase hex string (32 bytes)."
     );
   }
 
