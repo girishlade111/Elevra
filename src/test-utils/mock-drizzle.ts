@@ -23,8 +23,13 @@ export function setupTestDatabase(store: MockRepositoryStore = mockStore) {
           whereClause = clause;
           return chain;
         },
-        orderBy: (..._args: any[]) => {
-          orderDesc = true;
+        orderBy: (...args: any[]) => {
+          const first = args[0];
+          const typeStr = String(first?.type || first?.direction || "");
+          const chunksStr = Array.isArray(first?.queryChunks)
+            ? first.queryChunks.map((c: any) => String(c?.value || c)).join(" ")
+            : "";
+          orderDesc = typeStr.toLowerCase() === "desc" || chunksStr.toLowerCase().includes("desc");
           return chain;
         },
         limit: (count: number) => {
