@@ -8,7 +8,6 @@ import { aiClient } from "@/lib/ai/client";
 
 describe("Weekly Check-in Cron & Delivery Resiliency (/api/cron/weekly-checkin)", () => {
   let store: MockRepositoryStore;
-  const originalCronSecret = process.env.CRON_SECRET;
   const TEST_SECRET = "super_secret_cron_key_123";
 
   beforeEach(() => {
@@ -28,17 +27,17 @@ describe("Weekly Check-in Cron & Delivery Resiliency (/api/cron/weekly-checkin)"
       }),
       usage: { promptTokens: 100, completionTokens: 200, totalTokens: 300 },
       model: "meta/llama-3.1-70b-instruct",
-    });
+    } as any);
 
     // Mock emailService resolveProvider & send
-    emailService.resolveProvider = async (userId: string) => {
+    emailService.resolveProvider = (async (userId: string) => {
       const pref = await store.getEmailPreference(userId);
       if (pref?.provider === "gmail") {
         return {
           provider: {
             name: "gmail" as const,
             send: async () => ({ success: true, messageId: "gmail_cron_msg_1", provider: "gmail" as const }),
-            testConnection: async () => ({ success: true }),
+            testConnection: async () => ({ success: true, provider: "gmail" as const }),
           },
           resolvedType: "gmail" as const,
         };
@@ -47,11 +46,11 @@ describe("Weekly Check-in Cron & Delivery Resiliency (/api/cron/weekly-checkin)"
         provider: {
           name: "resend" as const,
           send: async () => ({ success: true, messageId: "resend_cron_msg_1", provider: "resend" as const }),
-          testConnection: async () => ({ success: true }),
+          testConnection: async () => ({ success: true, provider: "resend" as const }),
         },
         resolvedType: "resend" as const,
       };
-    };
+    }) as any;
   });
 
   describe("Authorization & Security Guards", () => {
@@ -261,13 +260,13 @@ describe("Weekly Check-in Cron & Delivery Resiliency (/api/cron/weekly-checkin)"
         onboardingStep: 4,
       });
 
-      emailService.resolveProvider = async (userId: string) => {
+      emailService.resolveProvider = (async (userId: string) => {
         if (userId === "user_fail_email") {
           return {
             provider: {
               name: "resend" as const,
               send: async () => ({ success: false, error: "SMTP timeout or invalid recipient domain", provider: "resend" as const }),
-              testConnection: async () => ({ success: true }),
+              testConnection: async () => ({ success: true, provider: "resend" as const }),
             },
             resolvedType: "resend" as const,
           };
@@ -276,11 +275,11 @@ describe("Weekly Check-in Cron & Delivery Resiliency (/api/cron/weekly-checkin)"
           provider: {
             name: "resend" as const,
             send: async () => ({ success: true, messageId: "resend_ok_123", provider: "resend" as const }),
-            testConnection: async () => ({ success: true }),
+            testConnection: async () => ({ success: true, provider: "resend" as const }),
           },
           resolvedType: "resend" as const,
         };
-      };
+      }) as any;
 
       const req = new Request("http://localhost:3000/api/cron/weekly-checkin", {
         method: "GET",

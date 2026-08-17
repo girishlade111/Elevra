@@ -106,7 +106,7 @@ describe("Comprehensive Security & Tenant Isolation Suite", () => {
       const encrypted = encryptCredential("confidential_payload");
       const parts = encrypted.split(":");
       // Tamper ciphertext part
-      const tampered = `${parts[0]}:${parts[1]}:ff${parts[2].slice(2)}`;
+      const tampered = `${parts[0]!}:${parts[1]!}:ff${parts[2]!.slice(2)}`;
 
       assert.throws(() => decryptCredential(tampered));
     });

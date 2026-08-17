@@ -8,7 +8,7 @@ import { setTestDb } from "@/db";
 
 export function setupTestDatabase(store: MockRepositoryStore = mockStore) {
   const mockDb: any = {
-    select: (fields?: any) => {
+    select: (_fields?: any) => {
       let targetTable: any = null;
       let whereClause: any = null;
       let limitCount: number | null = null;
@@ -23,7 +23,7 @@ export function setupTestDatabase(store: MockRepositoryStore = mockStore) {
           whereClause = clause;
           return chain;
         },
-        orderBy: (...args: any[]) => {
+        orderBy: (..._args: any[]) => {
           orderDesc = true;
           return chain;
         },
@@ -209,7 +209,7 @@ async function executeSelect(
       return await store.listOnboardedProfiles();
     }
     if (params.length > 0) {
-      const p = await store.getProfile(params[0]);
+      const p = await store.getProfile(params[0]!);
       return p ? [p] : [];
     }
     return Array.from(store.store.profiles.values());
@@ -218,7 +218,7 @@ async function executeSelect(
   if (tableName.includes("conversations")) {
     let convs = Array.from(store.store.conversations.values());
     if (params.length === 1) {
-      const p = params[0];
+      const p = params[0]!;
       convs = convs.filter((c) => c.clerkUserId === p || c.id === p);
     } else if (params.length >= 2) {
       convs = convs.filter((c) => params.includes(c.id) && params.includes(c.clerkUserId));
@@ -232,7 +232,7 @@ async function executeSelect(
   if (tableName.includes("conversation_messages") || tableName.includes("messages")) {
     let msgs = Array.from(store.store.messages.values());
     if (params.length === 1) {
-      msgs = msgs.filter((m) => m.conversationId === params[0] || m.clerkUserId === params[0]);
+      msgs = msgs.filter((m) => m.conversationId === params[0]! || m.clerkUserId === params[0]!);
     } else if (params.length >= 2) {
       msgs = msgs.filter((m) => params.includes(m.conversationId) && params.includes(m.clerkUserId));
     }
@@ -249,7 +249,7 @@ async function executeSelect(
 
   if (tableName.includes("email_preferences")) {
     if (params.length > 0) {
-      const pref = await store.getEmailPreference(params[0]);
+      const pref = await store.getEmailPreference(params[0]!);
       return pref ? [pref] : [];
     }
     return Array.from(store.store.emailPreferences.values());
@@ -257,7 +257,7 @@ async function executeSelect(
 
   if (tableName.includes("gmail_connections") || tableName.includes("email_connections")) {
     if (params.length > 0) {
-      const conn = await store.getEmailConnection(params[0]);
+      const conn = await store.getEmailConnection(params[0]!);
       return conn ? [conn] : [];
     }
     return Array.from(store.store.emailConnections.values());
@@ -360,7 +360,7 @@ async function executeDelete(store: MockRepositoryStore, table: any, clause: any
     await store.deleteProfile(params[0]);
   }
   if (tableName.includes("conversations")) {
-    if (params.length === 1) {
+    if (params.length === 1 && params[0]) {
       await store.clearAllConversations(params[0]);
     } else if (params.length >= 2) {
       const convId = params.find((p) => store.store.conversations.has(p));

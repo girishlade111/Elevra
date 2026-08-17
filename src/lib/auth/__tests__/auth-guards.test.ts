@@ -2,8 +2,8 @@ import test, { describe, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { requireAuth, requireApiAuth } from "@/lib/auth/require-auth";
 import { getCurrentUser, getAuthUserId, setAuthMock } from "@/lib/auth/get-current-user";
-import { protectAppRoute, protectAuthRoute } from "@/lib/auth/guards";
-import { ensureUserProfile, checkUserOnboarded, markUserOnboarded } from "@/lib/auth/sync-user";
+import { protectAuthRoute } from "@/lib/auth/guards";
+import { ensureUserProfile, checkUserOnboarded } from "@/lib/auth/sync-user";
 import { setTestDb } from "@/db";
 
 describe("Auth Guards & Session Management", () => {
@@ -128,7 +128,7 @@ describe("Auth Guards & Session Management", () => {
       let redirected = false;
       try {
         await protectAuthRoute();
-      } catch (err) {
+      } catch {
         redirected = true;
       }
 

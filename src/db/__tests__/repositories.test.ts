@@ -114,9 +114,9 @@ describe("Database Repositories & Business Logic", () => {
 
       const messages = await store.getMessages(conv.id, "user_chat");
       assert.equal(messages.length, 2);
-      assert.equal(messages[0].id, userMsg.id);
-      assert.equal(messages[1].id, assistantMsg.id);
-      assert.equal(messages[1].intent, "interview_prep");
+      assert.equal(messages[0]!.id, userMsg.id);
+      assert.equal(messages[1]!.id, assistantMsg.id);
+      assert.equal(messages[1]!.intent, "interview_prep");
     });
 
     test("getRecentMessages bounds history to requested limit", async () => {
@@ -246,7 +246,7 @@ describe("Database Repositories & Business Logic", () => {
 
       const updated = await store.updateCheckinStatus(checkin.id, "sent", "msg_resend_999");
       assert.equal(updated?.status, "sent");
-      assert.equal(updated?.messageId, "msg_resend_999");
+      assert.equal(updated?.providerMessageId, "msg_resend_999");
       assert.ok(updated?.sentAt !== null);
     });
 

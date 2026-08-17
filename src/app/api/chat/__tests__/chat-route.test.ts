@@ -19,17 +19,10 @@ describe("Chat Route Handler (/api/chat)", () => {
 
   const mockSuccessfulCoachingResult: CoachingGenerationResult = {
     response: {
-      intent_detected: "salary_negotiation",
+      intent_detected: "salary",
       main_advice: "Anchor your ask high with clear value metrics from your recent wins.",
-      actionable_steps: [
-        "1. Document quantifiable impact delivered in the last 12 months.",
-        "2. Practice the counter-offer script without apologizing.",
-      ],
-      cognitive_reframes: [
-        "Advocating for fair market compensation is professional self-respect.",
-      ],
-      practice_scenario: "Roleplay: 'Based on the increased scope, I am targeting $180k.'",
-      follow_up_questions: ["What is your ideal base salary vs bonus target?"],
+      actionable_step: "Document quantifiable impact delivered in the last 12 months.",
+      follow_up_question: "What is your ideal base salary vs bonus target?",
     },
     rawOutput: JSON.stringify({ main_advice: "Anchor your ask high" }),
     usage: {
@@ -38,7 +31,7 @@ describe("Chat Route Handler (/api/chat)", () => {
       outputTokens: 240,
       totalTokens: 360,
     },
-    intent: "salary_negotiation",
+    intent: "salary",
     latencyMs: 350,
   };
 
@@ -160,7 +153,7 @@ describe("Chat Route Handler (/api/chat)", () => {
       const json = await res.json();
       assert.equal(json.success, true);
       assert.ok(json.data.conversationId);
-      assert.equal(json.data.intent, "salary_negotiation");
+      assert.equal(json.data.intent, "salary");
       assert.equal(json.data.response.main_advice, mockSuccessfulCoachingResult.response.main_advice);
 
       // Verify conversation and message saved in DB
@@ -168,8 +161,8 @@ describe("Chat Route Handler (/api/chat)", () => {
       assert.ok(conv !== null);
       const msgs = await store.getMessages(json.data.conversationId, "user_chat_test");
       assert.equal(msgs.length, 2); // 1 user + 1 assistant
-      assert.equal(msgs[0].role, "user");
-      assert.equal(msgs[1].role, "assistant");
+      assert.equal(msgs[0]!.role, "user");
+      assert.equal(msgs[1]!.role, "assistant");
     });
 
     test("appends message to existing conversation when valid conversationId is provided", async () => {

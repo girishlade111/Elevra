@@ -5,7 +5,10 @@
 import { nanoid } from "nanoid";
 import type { Profile, CareerStage } from "@/db/schema/users";
 import type { Conversation, ConversationMessage } from "@/db/schema/coaching";
+import type { GmailConnection, EmailPreference, WeeklyCheckin } from "@/db/schema/emails";
 import { encryptCredential, decryptCredential } from "@/lib/security/encryption";
+
+export type EmailConnection = GmailConnection;
 
 if (!process.env.ENCRYPTION_KEY) {
   process.env.ENCRYPTION_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
@@ -255,7 +258,7 @@ export class MockRepositoryStore {
       clerkUserId: data.clerkUserId,
       role: data.role,
       content: data.content,
-      intent: data.intent ?? null,
+      intent: (data.intent as any) ?? null,
       createdAt: now,
     };
     this.store.messages.set(id, message);
@@ -290,10 +293,8 @@ export class MockRepositoryStore {
       email: data.email,
       provider: data.provider || "gmail",
       encryptedAppPassword: encrypted || existing?.encryptedAppPassword || "",
-      iv: "",
-      authTag: "",
+      isConnected: true,
       lastTestedAt: existing?.lastTestedAt ?? null,
-      lastTestSuccess: existing?.lastTestSuccess ?? null,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
@@ -331,7 +332,7 @@ export class MockRepositoryStore {
     const conn = this.store.emailConnections.get(clerkUserId);
     if (conn) {
       conn.lastTestedAt = new Date();
-      conn.lastTestSuccess = success;
+      conn.isConnected = success;
       conn.updatedAt = new Date();
     }
   }
@@ -361,6 +362,10 @@ export class MockRepositoryStore {
     return this.store.emailPreferences.get(clerkUserId) ?? null;
   }
 
+  async deleteEmailPreference(clerkUserId: string): Promise<void> {
+    this.store.emailPreferences.delete(clerkUserId);
+  }
+
   // Weekly Check-in operations
   async createCheckin(data: {
     clerkUserId: string;
@@ -368,7 +373,7 @@ export class MockRepositoryStore {
     recipientEmail: string;
     subject: string;
     content: string;
-    status?: "pending" | "sent" | "failed";
+    status?: "pending" | "sent" | "failed" | "skipped";
   }): Promise<WeeklyCheckin> {
     const id = nanoid();
     const now = new Date();
@@ -380,11 +385,10 @@ export class MockRepositoryStore {
       subject: data.subject,
       content: data.content,
       status: data.status || "pending",
-      messageId: null,
-      error: null,
+      providerMessageId: null,
+      errorMessage: null,
       sentAt: data.status === "sent" ? now : null,
       createdAt: now,
-      updatedAt: now,
     };
     this.store.weeklyCheckins.set(id, checkin);
     return checkin;
@@ -400,10 +404,9 @@ export class MockRepositoryStore {
     if (!checkin) return null;
 
     checkin.status = status;
-    checkin.messageId = messageId ?? null;
-    checkin.error = error ?? null;
+    checkin.providerMessageId = messageId ?? null;
+    checkin.errorMessage = error ?? null;
     checkin.sentAt = status === "sent" ? new Date() : null;
-    checkin.updatedAt = new Date();
     return checkin;
   }
 

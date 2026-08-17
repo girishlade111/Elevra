@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { getCurrentUser, resolveAuth, type CurrentUserResult } from "./get-current-user";
 import { ROUTES } from "@/config/routes";
 import type { ApiResponse } from "@/types/api";
