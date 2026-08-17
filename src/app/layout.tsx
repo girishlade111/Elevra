@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { APP_CONFIG } from "@/config/app";
-import { clientEnv } from "@/config/env";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,13 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider
-      publishableKey={
-        process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-        clientEnv.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-        "pk_test_Y2xlcmsuZXhhbXBsZS5jb20k"
-      }
-    >
+    <ClerkProvider>
       <html lang="en" className="dark">
         <body className="bg-background text-text-primary min-h-screen antialiased">
           {children}
